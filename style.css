@@ -1,0 +1,43 @@
+dl.bibtex_references,ul.bibtex_references{
+    padding-bottom:1.5em;
+}
+dl.bibtex_references dt {
+    float:left;
+    margin-right:5px;
+}
+dl.bibtex_references dd {
+    margin-left:3em;
+    margin-bottom:1ex;
+}
+ul.bibtex_references {
+    display:inline;
+}
+ul.bibtex_references li {
+	padding-left:3ex;
+	text-indent:-3ex;
+    list-style:none inside;
+    margin-bottom:1em;
+}
+
+a.bibtex_citekey:hover {
+    position:relative;
+    background:transparent;
+}
+ 
+a.bibtex_citekey span {
+    position: absolute;
+    visibility:hidden;
+    width:25em;
+    top:2.5ex;
+    left:1ex;
+    background: #ffffdd;
+    border:1px solid #aaa;
+    padding:5px;
+    text-align:left;
+    font-size:80%;
+    line-height:120%;
+}
+ 
+a.bibtex_citekey:hover span {
+    visibility:visible;
+}

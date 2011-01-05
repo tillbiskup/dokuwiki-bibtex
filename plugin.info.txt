@@ -1,0 +1,7 @@
+base   bibtex
+author Till Biskup
+email  till@till-biskup
+date   2010-12-26
+name   bibtex plugin
+desc   adding bibtex functionality to dokuwiki
+url    http://localhost/
