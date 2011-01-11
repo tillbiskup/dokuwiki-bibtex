@@ -514,6 +514,7 @@ class bibtexparser_plugin_bibtex
         $entry = str_replace('"s',"&szlig;",$entry);
         // Handle accents
         // Handle acute
+        $entry = str_replace("\'c","&#x107;",$entry);
         $entry = preg_replace("/\\\'(.?)/","&\\1acute;",$entry);
         // Handle grave
         $entry = preg_replace("/\\\`(.?)/","&\\1grave;",$entry);
