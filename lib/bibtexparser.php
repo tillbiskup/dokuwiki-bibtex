@@ -1055,7 +1055,7 @@ class bibtexparser_plugin_bibtex
         $ret = str_replace("VON", $array['von'], $ret);
         $ret = str_replace("LAST", $array['last'], $ret);
         // Assuming that "jr" is always separated by a comma
-        $ret = str_replace(", JR", $array['jr'], $ret);
+        $ret = str_replace("JR", $array['jr'], $ret);
         $ret = str_replace("FIRST", $array['first'], $ret);
         return trim($ret);
     }
