@@ -520,6 +520,8 @@ class bibtexparser_plugin_bibtex
         $entry = preg_replace("/\\\`(.?)/","&\\1grave;",$entry);
         // Handle circumflex
         $entry = preg_replace("/\\\(\^)(.?)/","&\\2circ;",$entry);
+        // Handle hatschek
+        $entry = str_replace('\v{z}',"&#x17E;",$entry);
         // ae and oe ligatures
         $entry = preg_replace('/\\\([aoAO]{1}[eE]{1})/',"&\\1lig;",$entry);        
         // \o and \O
@@ -1055,7 +1057,11 @@ class bibtexparser_plugin_bibtex
         $ret = str_replace("VON", $array['von'], $ret);
         $ret = str_replace("LAST", $array['last'], $ret);
         // Assuming that "jr" is always separated by a comma
-        $ret = str_replace("JR", $array['jr'], $ret);
+        if (!empty($array['jr'])) {
+          $ret = str_replace("JR", $array['jr'], $ret);
+        } else {
+          $ret = str_replace(", JR", '', $ret);
+        }
         $ret = str_replace("FIRST", $array['first'], $ret);
         return trim($ret);
     }
