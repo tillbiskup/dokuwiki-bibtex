@@ -4,8 +4,8 @@
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup>
- * @version 0.1
- * @date    2010-12-26
+ * @version 0.1a
+ * @date    2011-02-19
  */
  
 /**
@@ -81,7 +81,8 @@ class bibtexparser_plugin_bibtex
         '\varsigma' => '&sigmaf;',
         '\varphi' => '&phi;',
         '\cdot' => '&middot;',
-        '\cdots' => '&middot;&middot;&middot;'
+        '\cdots' => '&middot;&middot;&middot;',
+        '\rm ' => ''
     );
     /**
      * Array with Greek letters to replace the LaTeX commands in fields of entries
@@ -180,6 +181,7 @@ class bibtexparser_plugin_bibtex
             'unpublished'
         );
         $this->authorstring = 'VON LAST, JR, FIRST';
+        $this->authordelimiter = '; ';
     }
 
     /**
@@ -468,7 +470,7 @@ class bibtexparser_plugin_bibtex
                 foreach ($ret['authors'] as $authorentry) {
                     $tmparray[] = $this->_formatAuthor($authorentry);
                 }
-                $ret['author'] = implode(', ', $tmparray);
+                $ret['author'] = implode($this->authordelimiter, $tmparray);
             }
             //Handling the editors
             if (in_array('editor', array_keys($ret)) && $this->_options['extractAuthors']) {
@@ -522,12 +524,15 @@ class bibtexparser_plugin_bibtex
         $entry = preg_replace("/\\\(\^)(.?)/","&\\2circ;",$entry);
         // Handle hatschek
         $entry = str_replace('\v{z}',"&#x17E;",$entry);
+        $entry = str_replace('\v{c}',"&#x10D;",$entry);
         // ae and oe ligatures
         $entry = preg_replace('/\\\([aoAO]{1}[eE]{1})/',"&\\1lig;",$entry);        
         // \o and \O
         $entry = preg_replace('/\\\([oO]{1})/',"&\\1slash;",$entry);        
         // \aa and \AA
-        $entry = preg_replace('/\\\([aA]{1})([aA]{1})/',"&\\1ring;",$entry);        
+        $entry = preg_replace('/\\\([aA]{1})([aA]{1})/',"&\\1ring;",$entry);      
+        // Replace remaining "~" with "&nbsp;"
+        $entry = str_replace("~","&nbsp;",$entry);
         // Handle math ($...$)
         preg_match('/\$([^$]+)\$/' ,$entry, $matches);
         if ( count($matches) > 0 ) {

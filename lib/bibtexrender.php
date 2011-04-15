@@ -336,14 +336,23 @@ class bibtexrender_plugin_bibtex {
         switch ($this->_conf['citetype']) {
             case 'apa':
                 $bibtex_key = $ref['authors'][0]['last'];
+                if ($ref['authors'][0]['last'] == '') {
+                  $bibtex_key = $ref['editors'][0]['last'];
+                }
                 $bibtex_key .= $ref['year'];
                 break;
             case 'alpha':
                 $bibtex_key = substr($ref['authors'][0]['last'],0,3);
+                if ($ref['authors'][0]['last'] == '') {
+                  $bibtex_key = substr($ref['editors'][0]['last'],0,3);
+                }
                 $bibtex_key .= substr($ref['year'],2,2);
                 break;
             case 'authordate':
                 $bibtex_key = $ref['authors'][0]['last'] . ", ";
+                if ($ref['authors'][0]['last'] == '') {
+                  $bibtex_key = $ref['editors'][0]['last'] . ", ";
+                }
                 $bibtex_key .= $ref['year'];
                 break;
             case 'numeric':

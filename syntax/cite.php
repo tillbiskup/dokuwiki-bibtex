@@ -64,7 +64,7 @@ class syntax_plugin_bibtex_cite extends DokuWiki_Syntax_Plugin {
                     // Suppress comma after last bibkey
                     // Alternatively, the output could be done after an implode
                     if ($bibkey != $bibkeys[sizeof($bibkeys)-1]) {
-                        $renderer->doc .= ", ";
+                        $renderer->doc .= ', ';
                     }
                 }
                 $renderer->doc .= "]";
@@ -73,6 +73,28 @@ class syntax_plugin_bibtex_cite extends DokuWiki_Syntax_Plugin {
             return true;
             
         }
+        
+        if($mode == 'latex') {
+
+            require_once(DOKU_PLUGIN.'bibtex/lib/bibtexrender.php');
+            $bibtexrenderer = bibtexrender_plugin_bibtex::getResource($ID);
+			// Check whether the reference exists, otherwise silently ignore
+			// The problem still exists when all keys in one block do not exist
+            $bibkeys = explode(',',$match);
+			if ((count($bibkeys) > 1) || $bibtexrenderer->printCitekey($match)) {
+				$renderer->doc .= '\cite{';
+                foreach ($bibkeys as $bibkey) {
+	                $renderer->doc .= $bibkey;
+                    if ($bibkey != $bibkeys[sizeof($bibkeys)-1]) {
+                        $renderer->doc .= ",";
+                    }
+                }
+                $renderer->doc .= "}";
+            }
+            return true;
+            
+        }
+        
         return false;
     }
 }
