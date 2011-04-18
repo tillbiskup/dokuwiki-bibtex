@@ -58,54 +58,77 @@ class syntax_plugin_bibtex_bibtex extends DokuWiki_Syntax_Plugin {
 
     public function render($mode, &$renderer, $data) {
         global $ID;
-        if($mode != 'xhtml') return false;
+        if($mode == 'xhtml') {
         
-        list($state, $substate, $match, $pos) = $data;
+	        list($state, $substate, $match, $pos) = $data;
 
-        switch ($state) {
+    	    switch ($state) {
  
-            case DOKU_LEXER_ENTER:
-                break;
+        	    case DOKU_LEXER_ENTER:
+            	    break;
   
-            case DOKU_LEXER_UNMATCHED:                
-                require_once(DOKU_PLUGIN.'bibtex/lib/bibtexrender.php');
-                $bibtexrenderer = bibtexrender_plugin_bibtex::getResource($ID);
-                // split $match line by line
-                $matches = preg_split("/\r?\n/", trim($match));
-                // Add key-value pairs into options array
-                foreach ($matches as $option) {
-                    $opt = explode('=',$option,2);
-                    $options[$opt[0]][] = $opt[1];
-                }
+	            case DOKU_LEXER_UNMATCHED:                
+    	            require_once(DOKU_PLUGIN.'bibtex/lib/bibtexrender.php');
+        	        $bibtexrenderer = bibtexrender_plugin_bibtex::getResource($ID);
+	                // split $match line by line
+    	            $matches = preg_split("/\r?\n/", trim($match));
+        	        // Add key-value pairs into options array
+            	    foreach ($matches as $option) {
+                	    $opt = explode('=',$option,2);
+                    	$options[$opt[0]][] = $opt[1];
+	                }
 
-                switch ($substate) {
-                    case 'bibliography':
-                        // Careful with options settings, as there are only very
-                        // few options that do make sense to be set that late.
-                        if (array_key_exists('sort',$options)) {
-                            $opt['sort'] = $options['sort'];
-                            $bibtexrenderer->setOptions($opt);
-                        }
-                        $bibtex = $bibtexrenderer->printBibliography($substate);
-                        $renderer->doc .= $bibtex;
-                        break;
-                    case 'furtherreading':
-                        $bibtexrenderer->setOptions($options);
-                        $bibtex = $bibtexrenderer->printBibliography($substate);
-                        $renderer->doc .= $bibtex;
-                        break;
-                    default:
-                        $bibtexrenderer->setOptions($options);
-                        break;
-                }
-                break;
+    	            switch ($substate) {
+        	            case 'bibliography':
+            	            // Careful with options settings, as there are only very	
+        	                // few options that do make sense to be set that late.
+            	            if (array_key_exists('sort',$options)) {
+                	            $opt['sort'] = $options['sort'];
+                    	        $bibtexrenderer->setOptions($opt);
+                        	}
+	                        $bibtex = $bibtexrenderer->printBibliography($substate);
+    	                    $renderer->doc .= $bibtex;
+        	                break;
+            	        case 'furtherreading':
+                	        $bibtexrenderer->setOptions($options);
+                    	    $bibtex = $bibtexrenderer->printBibliography($substate);
+	                        $renderer->doc .= $bibtex;
+    	                    break;
+        	            default:
+            	            $bibtexrenderer->setOptions($options);
+                	        break;
+	                }
+    	            break;
  
-            case DOKU_LEXER_EXIT:
-                break;
+	            case DOKU_LEXER_EXIT:
+    	            break;
  
-        }
+	        }
+ 	
+    	    return true;
+    	}
+    	
+        if($mode == 'odt') {
+        
+	        list($state, $substate, $match, $pos) = $data;
+
+    	    switch ($state) {
  
-        return true;
+        	    case DOKU_LEXER_ENTER :
+            	    break;
+  
+	            case DOKU_LEXER_UNMATCHED :
+    	            break;
+ 
+	            case DOKU_LEXER_EXIT :
+    	            break;
+ 
+	        }
+ 	
+    	    return true;
+    	}
+    	
+    	return false;
     }
     
 }
