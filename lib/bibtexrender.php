@@ -246,6 +246,14 @@ class bibtexrender_plugin_bibtex {
                 if (!isset($this->_bibtex_keysCited) || empty($this->_bibtex_keysCited)) {
                     return;
                 }
+				// If there are nocite entries
+                if (isset($this->_bibtex_keysNotCited) && !empty($this->_bibtex_keysNotCited)) {
+                	foreach ($this->_bibtex_keysNotCited as $key => $no) {
+                		if (!array_key_exists($key,$this->_bibtex_keysCited)) {
+	                		$this->_bibtex_keysCited[$key] = ++$this->_currentKeyNumber;
+	                	}
+	                }
+                }
                 if ('true' == $this->_conf['sort'] && 'numeric' != $this->_conf['citetype']) {
                     $citedKeys = array();
                     foreach ($this->_bibtex_keysCited as $key => $no) {

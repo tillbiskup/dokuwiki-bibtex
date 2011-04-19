@@ -83,8 +83,13 @@ class syntax_plugin_bibtex_bibtex extends DokuWiki_Syntax_Plugin {
             	            // Careful with options settings, as there are only very	
         	                // few options that do make sense to be set that late.
             	            if (array_key_exists('sort',$options)) {
-                	            $opt['sort'] = $options['sort'];
-                    	        $bibtexrenderer->setOptions($opt);
+                	            $oopt['sort'] = $options['sort'];
+                        	}
+            	            if (array_key_exists('nocite',$options)) {
+                	            $oopt['nocite'] = $options['nocite'];
+                        	}
+                        	if ($oopt) {
+                    	        $bibtexrenderer->setOptions($oopt);
                         	}
 	                        $bibtex = $bibtexrenderer->printBibliography($substate);
     	                    $renderer->doc .= $bibtex;
