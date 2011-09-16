@@ -528,6 +528,8 @@ class bibtexparser_plugin_bibtex
         // Handle cedille
         $entry = str_replace('\c{C}',"&Ccedil;",$entry);
         $entry = str_replace('\c{c}',"&ccedil;",$entry);
+        // Handle tilde
+        $entry = preg_replace("/\\\~(.?)/","&\\1tilde;",$entry);
         // ae and oe ligatures
         $entry = preg_replace('/\\\([aoAO]{1}[eE]{1})/',"&\\1lig;",$entry);        
         // \o and \O
