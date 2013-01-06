@@ -1,5 +1,6 @@
-dl.bibtex_references,ul.bibtex_references{
+dl.bibtex_references,ul.bibtex_references {
     padding-bottom:1.5em;
+    padding-top:0px;
 }
 dl.bibtex_references dt {
     float:left;
@@ -13,7 +14,7 @@ ul.bibtex_references {
     display:inline;
 }
 ul.bibtex_references li {
-    padding-left:3ex;
+    padding-left:0ex;
     text-indent:-3ex;
     list-style:none inside;
     margin-bottom:1em;
