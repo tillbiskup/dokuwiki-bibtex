@@ -8,6 +8,7 @@
 $conf['_basic'] = '';
 $conf['citetype'] = 'numeric';
 $conf['file'] = '';
+$conf['pdfdir'] = '';
 $conf['sort'] = '';
 $conf['_formatstrings'] = '';
 $conf['fmtstr_article'] = 'AUTHOR (YEAR): TITLE, <em>JOURNAL</em> <strong>VOLUME</strong>:PAGES';

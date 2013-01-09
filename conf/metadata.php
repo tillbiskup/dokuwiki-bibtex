@@ -8,6 +8,7 @@
 $meta['_basic'] = array('fieldset');
 $meta['citetype'] = array('multichoice','_choices' => array('alpha','apa','authordate','numeric'));
 $meta['file'] = array('string');
+$meta['pdfdir'] = array('string');
 $meta['sort'] = array('onoff');
 $meta['_formatstrings'] = array('fieldset');
 $meta['fmtstr_article'] = array('string');

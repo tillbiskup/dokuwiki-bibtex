@@ -4,8 +4,8 @@
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup>
- * @version 0.1
- * @date    2010-12-26
+ * @version 0.2
+ * @date    2013-01-09
  */
 
 // must be run within Dokuwiki
@@ -53,13 +53,13 @@ class syntax_plugin_bibtex_cite extends DokuWiki_Syntax_Plugin {
 			// The problem still exists when all keys in one block do not exist
             $bibkeys = explode(',',$match);
 			if ((count($bibkeys) > 1) || $bibtexrenderer->printCitekey($match)) {
-                $renderer->doc .= "[" ;
+                $renderer->doc .= '[' ;
                 foreach ($bibkeys as $bibkey) {
-                    $renderer->doc .= '<a href="#ref__' . $bibkey . '" name="reft__' . $bibkey . '" id="reft__' . $bibkey . '" class="bibtex_citekey">';
+                    $renderer->doc .= '<span class="bibtex_citekey"><a href="#ref__' . $bibkey . '" name="reft__' . $bibkey . '" id="reft__' . $bibkey . '" class="bibtex_citekey">';
                     $renderer->doc .= $bibtexrenderer->printCitekey($bibkey);
-                    $renderer->doc .= '<span>';
+                    $renderer->doc .= '</a><span>';
                     $renderer->doc .= $bibtexrenderer->printReference($bibkey);
-                    $renderer->doc .= '</span></a>';
+                    $renderer->doc .= '</span></span>';
                 
                     // Suppress comma after last bibkey
                     // Alternatively, the output could be done after an implode

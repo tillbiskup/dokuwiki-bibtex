@@ -4,8 +4,8 @@
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup>
- * @version 0.1
- * @date    2010-12-26
+ * @version 0.2
+ * @date    2013-01-09
  */
  
 require_once(DOKU_PLUGIN.'bibtex/lib/bibtexparser.php');
@@ -81,8 +81,9 @@ class bibtexrender_plugin_bibtex {
 		
 		// Transfer config settings from plugin config (via config manager) to local config
 		// Note: Only these settings have to be transferred that can be changed by this class.
-		//       Therefore it is not necessary to transfer the format strings for the entries.
+		// Therefore it is not necessary to transfer the format strings for the entries.
 		$this->_conf['file'] = explode(';',$this->plugin->getConf('file'));
+		$this->_conf['pdfdir'] = explode(';',$this->plugin->getConf('pdfdir'));
 		$this->_conf['citetype'] = $this->plugin->getConf('citetype');
 		
         // If there are files to load, load and parse them
@@ -215,6 +216,8 @@ class bibtexrender_plugin_bibtex {
      * @return string (HTML) formatted BibTeX reference
      */
     public function printReference($bibtex_key) {
+    	global $INFO;
+    
         $ref = $this->_bibtex_references[$this->_bibtex_keys[$bibtex_key]];
         if (empty($ref)) {
             return;
@@ -231,6 +234,22 @@ class bibtexrender_plugin_bibtex {
         }
         // Handle case of no author, but editor
         $formatstring = str_replace('AUTHOR', $ref['editor'] . " (" . $this->plugin->getLang('editorabbrev') . ")", $formatstring);
+        // Handle PDF files
+        // Check whether we have a directory for PDF files
+        if (array_key_exists('pdfdir',$this->_conf)) {
+        	// Check whether we are logged in and have permissions to access the PDFs
+			if ((auth_quickaclcheck($this->_conf['pdfdir'][0]) >= AUTH_READ) && 
+				array_key_exists('name',$INFO['userinfo'])) {
+			    // do sth.
+			    $pdffilename = mediaFN($this->_conf['pdfdir'][0]) . "/" . $bibtex_key . ".pdf";
+			    if (file_exists($pdffilename)) {
+					resolve_mediaid($this->_conf['pdfdir'][0], &$pdflinkname, &$exists);
+			    	$formatstring = $formatstring . '&nbsp;<a href="' . 
+			    	ml($pdflinkname) . "/" . $bibtex_key . ".pdf" . '">PDF</a>';
+			    }
+			}
+        }
+
         return $formatstring;
     }
 

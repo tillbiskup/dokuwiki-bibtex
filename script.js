@@ -8,7 +8,7 @@ dw_bibtex = {
      * initialize page behaviours
      */
     init: function(){
-        jQuery('a.bibtex_citekey').mouseover(dw_bibtex.bibtexReferenceDisplay);
+        jQuery('span.bibtex_citekey').mouseover(dw_bibtex.bibtexReferenceDisplay);
     },
 
     /**
@@ -62,7 +62,7 @@ dw_bibtex = {
         content = content.replace(/\bid=(['"])([^"']+)\1/gi,'id="insitu__$2');
 
         // now put the content into the wrapper
-        dw_bibtex.insituPopup(this, 'insitu__bibtex').html(content).delay(600).show();
+        dw_bibtex.insituPopup(this, 'insitu__bibtex').html(content).show();
     }
 };
 

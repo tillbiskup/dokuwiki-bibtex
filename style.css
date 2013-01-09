@@ -20,7 +20,7 @@ ul.bibtex_references li {
     margin-bottom:1em;
 }
 
-a.bibtex_citekey span {
+span.bibtex_citekey span {
     display: none;
     visibility:hidden;
 }
