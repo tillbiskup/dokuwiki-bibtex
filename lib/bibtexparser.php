@@ -4,8 +4,8 @@
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup>
- * @version 0.1a
- * @date    2011-02-19
+ * @version 0.1b
+ * @date    2013-07-17
  */
  
 /**
@@ -526,8 +526,9 @@ class bibtexparser_plugin_bibtex
         $entry = str_replace('\v{z}',"&#x17E;",$entry);
         $entry = str_replace('\v{c}',"&#x10D;",$entry);
         // Handle cedille
-        $entry = str_replace('\c{C}',"&Ccedil;",$entry);
-        $entry = str_replace('\c{c}',"&ccedil;",$entry);
+//        $entry = str_replace('\c{C}',"&Ccedil;",$entry);
+//        $entry = str_replace('\c{c}',"&ccedil;",$entry);
+        $entry = preg_replace("/\\c{(.?)}/","$\\1&#x0327;",$entry);
         // Handle tilde
         $entry = preg_replace("/\\\~(.?)/","&\\1tilde;",$entry);
         // ae and oe ligatures

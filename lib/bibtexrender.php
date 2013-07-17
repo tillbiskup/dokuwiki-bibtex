@@ -4,8 +4,8 @@
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup>
- * @version 0.2
- * @date    2013-01-09
+ * @version 0.2.1
+ * @date    2013-06-09
  */
  
 require_once(DOKU_PLUGIN.'bibtex/lib/bibtexparser.php');
@@ -243,7 +243,7 @@ class bibtexrender_plugin_bibtex {
 			    // do sth.
 			    $pdffilename = mediaFN($this->_conf['pdfdir'][0]) . "/" . $bibtex_key . ".pdf";
 			    if (file_exists($pdffilename)) {
-					resolve_mediaid($this->_conf['pdfdir'][0], &$pdflinkname, &$exists);
+					resolve_mediaid($this->_conf['pdfdir'][0], $pdflinkname, $exists);
 			    	$formatstring = $formatstring . '&nbsp;<a href="' . 
 			    	ml($pdflinkname) . "/" . $bibtex_key . ".pdf" . '">PDF</a>';
 			    }
@@ -423,7 +423,7 @@ class bibtexrender_plugin_bibtex {
         }
         else if ( $kind == 'page' ) {
             $exists = false;
-            resolve_pageid($INFO['namespace'], &$uri, &$exists);
+            resolve_pageid($INFO['namespace'], $uri, $exists);
             if ( $exists ) {
                 return rawWiki($uri);
             }
