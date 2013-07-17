@@ -526,13 +526,14 @@ class bibtexparser_plugin_bibtex
         $entry = str_replace('\v{z}',"&#x17E;",$entry);
         $entry = str_replace('\v{c}',"&#x10D;",$entry);
         // Handle cedille
-//        $entry = str_replace('\c{C}',"&Ccedil;",$entry);
-//        $entry = str_replace('\c{c}',"&ccedil;",$entry);
-        $entry = preg_replace("/\\c{(.?)}/","$\\1&#x0327;",$entry);
+        $entry = preg_replace("/\\\c\{(.?)\}/","\\1&#x0327;",$entry);
         // Handle tilde
         $entry = preg_replace("/\\\~(.?)/","&\\1tilde;",$entry);
         // ae and oe ligatures
-        $entry = preg_replace('/\\\([aoAO]{1}[eE]{1})/',"&\\1lig;",$entry);        
+        $entry = preg_replace('/\\\([aoAO]{1}[eE]{1})/',"&\\1lig;",$entry);
+        // Handle i without dot
+        $entry = str_replace("\i","&#305;",$entry);
+ 
         // \o and \O
         $entry = preg_replace('/\\\([oO]{1})/',"&\\1slash;",$entry);        
         // \aa and \AA
