@@ -4,8 +4,8 @@
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup>
- * @version 0.1c
- * @date    2013-10-20
+ * @version 0.1d
+ * @date    2015-04-25
  */
  
 /**
@@ -31,6 +31,10 @@
  
 class bibtexparser_plugin_bibtex
 {
+    /**
+     * Handle to SQLite db
+     */
+    public static $sqlite = array();
     /**
      * Array with the BibTex Data
      *
@@ -246,7 +250,7 @@ class bibtexparser_plugin_bibtex
      * @access public
      * @return boolean true on success and PEAR_Error if there was a problem
      */
-    public function parse()
+    public function parse($sqlite = false)
     {
         //The amount of opening braces is compared to the amount of closing braces
         //Braces inside comments are ignored
@@ -279,18 +283,15 @@ class bibtexparser_plugin_bibtex
                 }
                 if (0 == $open) { //End of entry
                     $entry     = false;
-                    $entrydata = $this->_parseEntry($buffer);
-                    if (!$entrydata) {
-                        /**
-                         * This is not yet used.
-                         * We are here if the Entry is either not correct or not supported.
-                         * But this should already generate a warning.
-                         * Therefore it should not be necessary to do anything here
-                         */
+                    if ($sqlite) {
+                        $this->_addEntryToSQLiteDB($buffer);
                     } else {
-                        $this->data[] = $entrydata;
+	                    $entrydata = $this->_parseEntry($buffer);
+    	                if ($entrydata) {
+        	                $this->data[] = $entrydata;
+            	        }
                     }
-                    $buffer = '';
+            	    $buffer = '';
                 }
             }
             if ($entry) { //Inside entry
@@ -334,8 +335,44 @@ class bibtexparser_plugin_bibtex
             $this->content = '';
             return true;
         } else {
-//            return PEAR::raiseError('Unbalanced parenthesis');
+	        return false;
         }
+    }
+
+    /**
+     * Add entry to SQLite DB
+     */
+    private function _addEntryToSQLiteDB($entry)
+    {
+    	$key = '';
+        if ('@string' ==  strtolower(substr($entry, 0, 7))) {
+            $matches = array();
+            preg_match('/^@\w+\{(.+)/' ,$entry, $matches);
+            if ( count($matches) > 0 )
+            {
+            	$m = explode('=',$matches[1],2);
+            	$string = trim($m[0]);
+            	$entry = substr(trim($m[1]),1,-1);
+            	if ($this->sqlite->res2arr($this->sqlite->query("SELECT string FROM strings WHERE string = ?",$string))) {
+            		$this->sqlite->query("DELETE FROM strings WHERE string = ?",$string);
+	            }
+            	$this->sqlite->query("INSERT INTO strings (string, entry) VALUES (?,?)",$string, $entry);
+            }
+        } else {
+	    	$entry = $entry.'}';
+			// Look for key
+	        $matches = array();
+    	    preg_match('/^@(\w+)\{(.+),/' ,$entry, $matches);
+	        if ( count($matches) > 0 )
+    	    {
+    	    	$entryType = $matches[1];
+	        	$key = $matches[2];
+            	if ($this->sqlite->res2arr($this->sqlite->query("SELECT key FROM bibtex WHERE key = ?",$key))) {
+            		$this->sqlite->query("DELETE FROM bibtex WHERE key = ?",$key);
+	            }
+            	$this->sqlite->query("INSERT INTO bibtex (key, entry) VALUES (?,?)",$key, $entry);
+    	    }
+		}
     }
 
     /**
@@ -423,9 +460,12 @@ class bibtexparser_plugin_bibtex
 				// Handle string replacements
 				// IMPORTANT: Must precede stripDelimiter call
 				if (!in_array(substr($value,0,1),array_keys($this->_delimiters))) {
-				  if (array_key_exists($value,$this->_strings)) {
-				    $value = $this->_strings[$value];
-				  }
+				  	if (!empty($this->sqlite)) {
+						$stringReplacement = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM strings WHERE string = ?",$value));
+						$value = $stringReplacement[0]['entry'];
+					} elseif (array_key_exists($value,$this->_strings)) {
+						$value = $this->_strings[$value];
+					}
 				}
 
                 if ($this->_options['replaceLatex']) {
@@ -481,7 +521,7 @@ class bibtexparser_plugin_bibtex
                 foreach ($ret['editors'] as $editorentry) {
                     $tmparray[] = $this->_formatAuthor($editorentry);
                 }
-                $ret['editor'] = implode(', ', $tmparray);
+                $ret['editor'] = implode($this->authordelimiter, $tmparray);
             }
         }
         return $ret;
@@ -499,9 +539,11 @@ class bibtexparser_plugin_bibtex
         $entry = preg_replace("/\\\textbf\{([^\}]+)\}/","<strong>\\1</strong>",$entry);
         // quotation marks
         $entry = str_replace("``","&quot;",$entry);
-        $entry = str_replace("''","&quot;",$entry);        
+        $entry = str_replace("''","&quot;",$entry);
         // \& -> &amp;
         $entry = str_replace("\&","&amp;",$entry);
+        // \% -> %;
+        $entry = str_replace("\%","%;",$entry);
         // "\ " -> " ";
         $entry = str_replace("\ "," ",$entry);
         // --- -> &mdash;

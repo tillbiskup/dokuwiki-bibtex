@@ -7,6 +7,7 @@
 
 // keys need to match the config setting name
 $lang['_basic'] = 'Und was passiert, wenn ich hier jetzt Text eingebe?';
+$lang['sqlite'] = 'Das SQLite-Plugin verwenden? (Deutliche Beschleunigung)';
 $lang['citetype'] = 'Stil der Referenzschlüssel, d.h. die Art, wie Zitationen im Text angezeigt werden.<br /> Beispiele: [Hor89] (alpha), [Hore1989] (apa), [Hore, 1989] (authoryear), [5] (numeric).';
 $lang['file'] = "BibTeX-Datei(en), die als Standardbibliographie verwendet werden. Wird hier nichts angegeben, muß das jeweils am Beginn einer Seite über <code>&lt;bibtex&gt;file=...&lt;/bibtex&gt;</code> erfolgen.<br />Sinnvollerweise werden hier (durch ';' getrennte) Dokuwikiseiten angegeben, deren Quellcode rein aus BibTeX-Code besteht.";
 $lang['pdfdir'] = 'Verzeichnis für zu den jeweiligen Zitationen gehörenden PDF-Dateien (meist im Falle von wissenschaftlichen Artikeln). Der BIBTeX-Schlüssel muß mit dem Dateinamen identisch sein.';

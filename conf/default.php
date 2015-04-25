@@ -6,6 +6,7 @@
  */
 
 $conf['_basic'] = '';
+$conf['sqlite'] = '';
 $conf['citetype'] = 'numeric';
 $conf['file'] = '';
 $conf['pdfdir'] = '';

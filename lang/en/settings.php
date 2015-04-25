@@ -7,6 +7,7 @@
 
 // keys need to match the config setting name
 $lang['_basic'] = 'And what happens if I include here some text?';
+$lang['sqlite'] = 'Use SQLite-Plugin? (Fastenes up things tremendously.)';
 $lang['citetype'] = 'Reference key style, i.e. the way the citations are displayed inline. Examples would be [Hore, 1989] (authoryear), [5] (numeric), or [Hor89] (alpha)';
 $lang['file'] = "BibTeX File(s) used by default for the bibliography. If you don't enter here a value, you have to include it with the <code>&lt;bibtex&gt;file=...&lt;/bibtex&gt;</code> pattern at the beginning of the page.<br />It is good practice to use dokuwiki pages here (separated by ';') that contain only BibTeX code.";
 $lang['pdfdir'] = 'Directory containing the PDF files belonging to the respective citations (mostly in case of scientific articles). The BIBTeX key needs to be identical with the file name.';

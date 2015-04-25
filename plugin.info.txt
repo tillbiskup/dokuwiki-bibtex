@@ -1,7 +1,7 @@
 base   bibtex
 author Till Biskup
 email  till@till-biskup
-date   2013-01-11
+date   2015-04-25
 name   bibtex plugin
 desc   adding bibtex functionality to dokuwiki
 url    http://till-biskup.de/de/software/dokuwiki/bibtex

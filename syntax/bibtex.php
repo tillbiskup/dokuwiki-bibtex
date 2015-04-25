@@ -6,8 +6,8 @@
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup>
- * @version 0.1
- * @date    2010-12-26
+ * @version 0.1a
+ * @date    2015-04-25
  */
 
 // must be run within Dokuwiki
@@ -70,6 +70,15 @@ class syntax_plugin_bibtex_bibtex extends DokuWiki_Syntax_Plugin {
 	            case DOKU_LEXER_UNMATCHED:                
     	            require_once(DOKU_PLUGIN.'bibtex/lib/bibtexrender.php');
         	        $bibtexrenderer = bibtexrender_plugin_bibtex::getResource($ID);
+        	        // Handle special substate "database" already here
+        	        if ($substate === 'database') {
+						$bibtexrenderer->addBibtexToSQLite($match,$ID);
+	                    $renderer->doc .= '<pre class="bibtex_database">';
+	                	// return the dokuwiki markup within the figure tags
+    	                $renderer->doc .= $renderer->_xmlEntities($match);
+	                    $renderer->doc .= '</pre>';
+        	            break;
+        	        }
 	                // split $match line by line
     	            $matches = preg_split("/\r?\n/", trim($match));
         	        // Add key-value pairs into options array

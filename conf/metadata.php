@@ -6,6 +6,7 @@
  */
 
 $meta['_basic'] = array('fieldset');
+$meta['sqlite'] = array('onoff');
 $meta['citetype'] = array('multichoice','_choices' => array('alpha','apa','authordate','numeric'));
 $meta['file'] = array('string');
 $meta['pdfdir'] = array('string');
