@@ -4,8 +4,8 @@
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup>
- * @version 0.1d
- * @date    2015-04-25
+ * @version 0.1e
+ * @date    2015-05-01
  */
  
 /**
@@ -575,6 +575,8 @@ class bibtexparser_plugin_bibtex
         $entry = preg_replace('/\\\([aoAO]{1}[eE]{1})/',"&\\1lig;",$entry);
         // Handle i without dot
         $entry = str_replace("\i","&#305;",$entry);
+        // Handle u with bar
+        $entry = str_replace("\={u}","&#363;",$entry);
         // Handle \l and \L 
         $entry = str_replace("\l","&#322;",$entry);
         $entry = str_replace("\L","&#321;",$entry);
