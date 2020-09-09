@@ -35,13 +35,13 @@ class syntax_plugin_bibtex_cite extends DokuWiki_Syntax_Plugin {
         $this->Lexer->addSpecialPattern('\{\[.+?\]\}',$mode,'plugin_bibtex_cite');
     }
 
-    public function handle($match, $state, $pos, &$handler){
+    public function handle($match, $state, $pos, Doku_Handler $handler){
         // Strip syntax and return only bibtex key(s)
 		preg_match('/\{\[(.+?)\]\}/',$match,$matches);
         return array($matches[1], $state, $pos);
     }
 
-    public function render($mode, &$renderer, $data) {
+    public function render($mode, Doku_Renderer $renderer, $data) {
 		@list($match, $state, $pos) = $data;
         global $ID;
 

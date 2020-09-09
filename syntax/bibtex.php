@@ -42,7 +42,7 @@ class syntax_plugin_bibtex_bibtex extends DokuWiki_Syntax_Plugin {
         $this->Lexer->addExitPattern('</bibtex>','plugin_bibtex_bibtex');
     }
 
-    public function handle($match, $state, $pos, &$handler){
+    public function handle($match, $state, $pos, Doku_Handler $handler){
         if ($state == DOKU_LEXER_UNMATCHED) {
             // $matches[0] is the parameters <bibtex [parameters]>
             // $matches[1] is the text inside the block <bibtex [parameters]> </cmdexec>
@@ -56,7 +56,7 @@ class syntax_plugin_bibtex_bibtex extends DokuWiki_Syntax_Plugin {
         return array($state,'',$match,$pos);
     }
 
-    public function render($mode, &$renderer, $data) {
+    public function render($mode, Doku_Renderer $renderer, $data) {
         global $ID;
         if($mode == 'xhtml') {
         
