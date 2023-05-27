@@ -1,8 +1,8 @@
-<?php
+doo<?php
 /**
  * Default settings for the bibtex plugin
  *
- * @author Till Biskup <till@till-biskup>
+ * @author Till Biskup <till@till-biskup.de>
  */
 
 $conf['_basic'] = '';

@@ -3,9 +3,9 @@
  * DokuWiki Plugin bibtex (BibTeX Parser Component)
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
- * @author  Till Biskup <till@till-biskup>
- * @version 0.1e
- * @date    2015-05-01
+ * @author  Till Biskup <till@till-biskup.de>
+ * @version 0.2
+ * @date    2023-05-27
  */
  
 /**
@@ -108,7 +108,7 @@ class bibtexparser_plugin_bibtex
         'zeta','eta','theta','iota','kappa',
         'lambda','mu','nu','xi','omicron',
         'pi','rho','sigma','tau','upsilon',
-        'phi','chi','psi','omega'
+        'phi','chi','psi','omega',
     );
     /**
      * Array to store warnings
@@ -116,7 +116,7 @@ class bibtexparser_plugin_bibtex
      * @access public
      * @var array
      */
-    public $warnings;
+    public $warnings = array();
     /**
      * Run-time configuration options
      *
@@ -138,6 +138,14 @@ class bibtexparser_plugin_bibtex
      * @var string
      */
     public $authorstring;
+
+    /**
+     * List of SQL statements to be inserted at once
+     *
+     * @access private
+     * @var array
+     */
+    private $_sqlStatements = array();
 
     /**
      * Constructor
@@ -284,7 +292,8 @@ class bibtexparser_plugin_bibtex
                 if (0 == $open) { //End of entry
                     $entry     = false;
                     if ($sqlite) {
-                        $this->_addEntryToSQLiteDB($buffer);
+                        //$this->_addEntryToSQLiteDB($buffer);
+                        $this->_createInsertStatementForSQLiteDB($buffer);
                     } else {
 	                    $entrydata = $this->_parseEntry($buffer);
     	                if ($entrydata) {
@@ -299,6 +308,8 @@ class bibtexparser_plugin_bibtex
             }
             $lastchar = $char;
         }
+      	$this->_issueSQLStatements();
+      	//print_r($this->_sqlStatements);
         //If open is one it may be possible that the last ending brace is missing
         if (1 == $open) {
             $entrydata = $this->_parseEntry($buffer);
@@ -314,7 +325,7 @@ class bibtexparser_plugin_bibtex
         if (0 != $open) {
             $valid = false;
         }
-        //Are there Multiple entries with the same cite?
+        //Are there multiple entries with the same cite?
         if ($this->_options['validate']) {
             $cites = array();
             foreach ($this->data as $entry) {
@@ -340,6 +351,47 @@ class bibtexparser_plugin_bibtex
     }
 
     /**
+     * Create insert statement for SQLite DB
+     */
+    private function _createInsertStatementForSQLiteDB($entry)
+    {
+    	$key = '';
+        if ('@string' ==  strtolower(substr($entry, 0, 7))) {
+            $matches = array();
+            preg_match('/^@\w+\{(.+)/', $entry, $matches);
+            if (count($matches) > 0)
+            {
+            	$m = explode('=', $matches[1], 2);
+            	$string = trim($m[0]);
+            	$entry = substr(trim($m[1]), 1, -1);
+            	$statement = "INSERT OR REPLACE INTO strings (string, entry) VALUES ('$string','$entry')";
+            	$this->_sqlStatements[] = $statement;
+            }
+        } else {
+	    	$entry = $entry.'}';
+			// Look for key
+	        $matches = array();
+    	    preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
+	        if ( count($matches) > 0 )
+    	    {
+    	    	$entryType = $matches[1];
+	        	$key = $matches[2];
+	        	$quoted_entry = $this->sqlite->escape_string($entry);
+	        	$statement = "INSERT OR REPLACE INTO bibtex (key, entry) VALUES ('$key','$quoted_entry')";
+                $this->_sqlStatements[] = $statement;
+    	    }
+		}
+    }
+
+    private function _issueSQLStatements()
+    {
+        array_unshift($this->_sqlStatements, "BEGIN TRANSACTION");
+        $this->_sqlStatements[] = "COMMIT;";
+        $this->sqlite->doTransaction($this->_sqlStatements, $sqlpreparing = false);
+        $this->_sqlStatements = [];
+    }
+
+    /**
      * Add entry to SQLite DB
      */
     private function _addEntryToSQLiteDB($entry)
@@ -347,30 +399,24 @@ class bibtexparser_plugin_bibtex
     	$key = '';
         if ('@string' ==  strtolower(substr($entry, 0, 7))) {
             $matches = array();
-            preg_match('/^@\w+\{(.+)/' ,$entry, $matches);
+            preg_match('/^@\w+\{(.+)/', $entry, $matches);
             if ( count($matches) > 0 )
             {
-            	$m = explode('=',$matches[1],2);
+            	$m = explode('=', $matches[1], 2);
             	$string = trim($m[0]);
-            	$entry = substr(trim($m[1]),1,-1);
-            	if ($this->sqlite->res2arr($this->sqlite->query("SELECT string FROM strings WHERE string = ?",$string))) {
-            		$this->sqlite->query("DELETE FROM strings WHERE string = ?",$string);
-	            }
-            	$this->sqlite->query("INSERT INTO strings (string, entry) VALUES (?,?)",$string, $entry);
+            	$entry = substr(trim($m[1]), 1, -1);
+            	$this->sqlite->query("INSERT OR REPLACE INTO strings (string, entry) VALUES (?,?)", $string, $entry);
             }
         } else {
 	    	$entry = $entry.'}';
 			// Look for key
 	        $matches = array();
-    	    preg_match('/^@(\w+)\{(.+),/' ,$entry, $matches);
+    	    preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
 	        if ( count($matches) > 0 )
     	    {
     	    	$entryType = $matches[1];
 	        	$key = $matches[2];
-            	if ($this->sqlite->res2arr($this->sqlite->query("SELECT key FROM bibtex WHERE key = ?",$key))) {
-            		$this->sqlite->query("DELETE FROM bibtex WHERE key = ?",$key);
-	            }
-            	$this->sqlite->query("INSERT INTO bibtex (key, entry) VALUES (?,?)",$key, $entry);
+            	$this->sqlite->query("INSERT OR REPLACE INTO bibtex (key, entry) VALUES (?,?)", $key, $entry);
     	    }
 		}
     }

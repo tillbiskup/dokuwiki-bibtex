@@ -2,7 +2,7 @@
 /**
  * Options for the bibtex plugin
  *
- * @author Till Biskup <till@till-biskup>
+ * @author Till Biskup <till@till-biskup.de>
  */
 
 $meta['_basic'] = array('fieldset');

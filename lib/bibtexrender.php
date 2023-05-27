@@ -3,9 +3,9 @@
  * DokuWiki Plugin bibtex (BibTeX Renderer Component)
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
- * @author  Till Biskup <till@till-biskup>
- * @version 0.3.0
- * @date    2015-04-25
+ * @author  Till Biskup <till@till-biskup.de>
+ * @version 0.4.0
+ * @date    2023-05-27
  */
  
 require_once(DOKU_PLUGIN.'bibtex/lib/bibtexparser.php');
@@ -30,11 +30,11 @@ class bibtexrender_plugin_bibtex {
      * Options can be set by calling setOptions($options = array())
      */
     private $_conf = array(
-    	sqlite => false,
-    	file => array(),
-    	citetype => '',
-    	sort => false,
-    	formatstring => array()
+    	'sqlite' => false,
+    	'file' => array(),
+    	'citetype' => '',
+    	'sort' => false,
+    	'formatstring' => array(),
     	);
     
     /**
@@ -44,7 +44,7 @@ class bibtexrender_plugin_bibtex {
         'pageabbrev',
         'pagesabbrev',
         'chapterabbrev',
-        'editorabbrev'
+        'editorabbrev',
         );
     
     /**
@@ -84,15 +84,15 @@ class bibtexrender_plugin_bibtex {
         // with the builtin methods of DW
 		require_once(DOKU_PLUGIN.'bibtex/syntax/bibtex.php');
 		$this->plugin = new syntax_plugin_bibtex_bibtex();
-		
+
 		// Transfer config settings from plugin config (via config manager) to local config
-		// Note: Only these settings have to be transferred that can be changed by this class.
+		// Note: Only those settings that can be changed by this class need to be transferred.
 		// Therefore it is not necessary to transfer the format strings for the entries.
 		$this->_conf['sqlite'] = $this->plugin->getConf('sqlite');
 		$this->_conf['file'] = explode(';',$this->plugin->getConf('file'));
 		$this->_conf['pdfdir'] = explode(';',$this->plugin->getConf('pdfdir'));
 		$this->_conf['citetype'] = $this->plugin->getConf('citetype');
-		
+
 		// In case we shall use SQLite
 		if ($this->plugin->getConf('sqlite')) {
 			$this->sqlite = plugin_load('helper', 'sqlite');
@@ -101,7 +101,7 @@ class bibtexrender_plugin_bibtex {
 				return;
 			}
 			// initialize the database connection
-			if(!$this->sqlite->init('bibtex',DOKU_PLUGIN.'bibtex/db/')){
+			if(!$this->sqlite->init('bibtex', DOKU_PLUGIN.'bibtex/db/')){
 				return;
 			}
 		} else {
@@ -111,7 +111,7 @@ class bibtexrender_plugin_bibtex {
         	}
         }
     }
-    
+
     /**
      * Gets instance of the class by id
      *
@@ -123,7 +123,7 @@ class bibtexrender_plugin_bibtex {
 			return null;
 		}
 		if (!array_key_exists($id, self::$resources)) {
-		    $x = new bibtexrender_plugin_bibtex($id);
+    	    $x = new bibtexrender_plugin_bibtex($id);
 		    self::$resources[$id] = $x;
 		}
 		// return the desired object or null in case of error
@@ -234,8 +234,8 @@ class bibtexrender_plugin_bibtex {
         if ( !$stat ) {
         	msg('Some problems with parsing BIBTeX code',-1);
         }
-        
-        if (count($this->_parser->warnings['warning'])) {
+
+        if ( ($this->_parser->warnings['warning']) && (count($this->_parser->warnings['warning']))) {
         	foreach($this->_parser->warnings as $parserWarning) {
         		msg($this->_parser->warnings[$parserWarning]['warning'],'2');
         	}
