@@ -1,4 +1,4 @@
-base   bibtex2
+base   bibtex
 author Till Biskup
 email  till@till-biskup.de
 date   2023-05-27

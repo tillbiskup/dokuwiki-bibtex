@@ -308,7 +308,9 @@ class bibtexparser_plugin_bibtex
             }
             $lastchar = $char;
         }
-      	$this->_issueSQLStatements();
+        if ($sqlite) {
+            $this->_issueSQLStatements();
+        }
       	//print_r($this->_sqlStatements);
         //If open is one it may be possible that the last ending brace is missing
         if (1 == $open) {
