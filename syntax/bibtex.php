@@ -3,7 +3,7 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 /**
- * DokuWiki Plugin bibtex (Syntax Component)
+ * DokuWiki Plugin bibtex4dw (Syntax Component)
  *
  * Parse <bibtex>...</bibtex> blocks in xhtml mode.bibtex
  *
@@ -27,7 +27,7 @@ if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
 
 require_once DOKU_PLUGIN.'syntax.php';
 
-class syntax_plugin_bibtex_bibtex extends DokuWiki_Syntax_Plugin {
+class syntax_plugin_bibtex4dw_bibtex extends DokuWiki_Syntax_Plugin {
     public function getType() {
         return 'protected';
     }
@@ -41,11 +41,11 @@ class syntax_plugin_bibtex_bibtex extends DokuWiki_Syntax_Plugin {
     }
 
     public function connectTo($mode) {
-        $this->Lexer->addEntryPattern('<bibtex(?=.*?>.*?</bibtex>)', $mode, 'plugin_bibtex_bibtex');
+        $this->Lexer->addEntryPattern('<bibtex(?=.*?>.*?</bibtex>)', $mode, 'plugin_bibtex4dw_bibtex');
     }
 
     public function postConnect() {
-        $this->Lexer->addExitPattern('</bibtex>', 'plugin_bibtex_bibtex');
+        $this->Lexer->addExitPattern('</bibtex>', 'plugin_bibtex4dw_bibtex');
     }
 
     public function handle($match, $state, $pos, Doku_Handler $handler){
@@ -74,8 +74,8 @@ class syntax_plugin_bibtex_bibtex extends DokuWiki_Syntax_Plugin {
                     break;
   
                 case DOKU_LEXER_UNMATCHED:                
-                    require_once(DOKU_PLUGIN.'bibtex/lib/bibtexrender.php');
-                    $bibtexrenderer = bibtexrender_plugin_bibtex::getResource($ID);
+                    require_once(DOKU_PLUGIN.'bibtex4dw/lib/bibtexrender.php');
+                    $bibtexrenderer = bibtexrender_plugin_bibtex4dw::getResource($ID);
 
                     // Handle special substate "database" already here
                     if ($substate === 'database') {

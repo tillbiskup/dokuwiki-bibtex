@@ -3,31 +3,6 @@
 Things that need to/should be done, as of May 2023
 
 
-## Rename plugin and create official plugin page
-
-Currently (and since the beginning of this plugin) there is another DokuWiki plugin called "bibtex" that has security issues since 2008. Therefore, this plugin should be renamed.
-
-Possible simple solution: "bibtex" -> "bibtex2"
-
-Is there any other sensible name, though? Alternatives may include:
-
-* **bibtex4dw** (currently *strongly* preferred)
-
-* bibtexref
-* bibtexlit
-* bibtexit
-* bibtexbib
-* bibtexing
-* dwbibtex
-* bibtexdw
-* bibliography
-* literature
-* references
-* citation[s]
-
-Note: Underscores are strictly forbidden for names of DokuWiki plugins, generally names should only consist of letters [a-z] and numbers [0-9].
-
-
 ## Refactor plugin code
 
 The code is not in very good shape and should be refactored and properly documented.

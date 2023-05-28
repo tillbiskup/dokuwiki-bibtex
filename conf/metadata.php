@@ -1,6 +1,6 @@
 <?php
 /**
- * Options for the bibtex plugin
+ * Options for the bibtex4dw plugin
  *
  * @author Till Biskup <till@till-biskup.de>
  */

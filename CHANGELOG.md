@@ -8,6 +8,7 @@ Note that the changelog started only in May 2023, after the plugin was not devel
 
 ## 2023-05-28
 
+* Rename plugin: "bibtex" => "bibtex4dw"
 * Further refactoring
 * Start with sensible messages to users via DokuWiki ``msg()`` function
 

@@ -3,7 +3,7 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 /**
- * DokuWiki Plugin bibtex (Syntax Component)
+ * DokuWiki Plugin bibtex4dw (Syntax Component)
  *
  * Parse citation commands (i.e., actual references to the literature)
  *
@@ -27,7 +27,7 @@ if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC.'lib/plugins/');
 
 require_once DOKU_PLUGIN.'syntax.php';
 
-class syntax_plugin_bibtex_cite extends DokuWiki_Syntax_Plugin {
+class syntax_plugin_bibtex4dw_cite extends DokuWiki_Syntax_Plugin {
     public function getType() {
         return 'substition';
     }
@@ -41,7 +41,7 @@ class syntax_plugin_bibtex_cite extends DokuWiki_Syntax_Plugin {
     }
 
     public function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('\{\[.+?\]\}', $mode, 'plugin_bibtex_cite');
+        $this->Lexer->addSpecialPattern('\{\[.+?\]\}', $mode, 'plugin_bibtex4dw_cite');
     }
 
     public function handle($match, $state, $pos, Doku_Handler $handler){
@@ -53,8 +53,8 @@ class syntax_plugin_bibtex_cite extends DokuWiki_Syntax_Plugin {
     public function render($mode, Doku_Renderer $renderer, $data) {
         @list($match, $state, $pos) = $data;
         global $ID;
-        require_once(DOKU_PLUGIN.'bibtex/lib/bibtexrender.php');
-        $bibtexrenderer = bibtexrender_plugin_bibtex::getResource($ID);
+        require_once(DOKU_PLUGIN.'bibtex4dw/lib/bibtexrender.php');
+        $bibtexrenderer = bibtexrender_plugin_bibtex4dw::getResource($ID);
 
         // Check whether the reference exists, otherwise silently ignore
         // The problem still exists when all keys in one block do not exist

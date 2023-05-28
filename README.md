@@ -1,22 +1,29 @@
-# bibtex Plugin for DokuWiki
+# bibtex4dw Plugin for DokuWiki
 
-Handling references stored in BIBTeX (text) databases in DokuWiki.
+Handling references stored in BibTeX (text) databases in DokuWiki.
 
-DokuWiki is an excellent tool for knowledge management and has been successfully used in academic context for long time. However, academists tend to use references to the literature when managing their knowledge, and DokuWiki is missing appropriate tools here. Being familiar with using BibTeX both, as a bibliographic (text) database format and as an engine to format references in documents written using LaTeX, a plugin for DokuWiki understanding the BibTeX format and allowing to reference literature from within wiki pages seems an obvious choice.
 
-## Intended use cases
+## What and why?
+
+**DokuWiki is an excellent tool for knowledge management** and has been successfully used in academic context for long time. However, **academics tend to use references to the literature** when managing their knowledge, and DokuWiki is missing appropriate tools here. 
+
+Being familiar with using BibTeX both, as a bibliographic (text) database format and as an engine to format references in documents written using LaTeX, a plugin for DokuWiki understanding the BibTeX format and allowing to reference literature from within wiki pages seems an obvious choice.
+
+
+### Intended use cases
 
 * Literature references in an academic context
 * Reuse existing BibTeX databases
 
 
-## Core criteria
+### Core criteria
 
 * Works with larg(er) bibliographic databases (several thousand entries)
 * Allows to use string replacements (concrete example: abbreviated and full journal names)
 * Access to PDF files of the reference, as long as available locally and accessible by the currently logged-in unser (obeying ACLs)
 
-## Philosophy
+
+### Philosophy
 
 * Resilience: plain text files, no external dependencies, no database as permanent storage (only temporary, the "truth" is in the text files)
 * Unix philosophy (sort of):
@@ -37,9 +44,13 @@ on how to install plugins in DokuWiki.
 
 ## Documentation
 
-All documentation for this plugin can (for the time being) be found at:
+All documentation for this plugin can (for the time being and in German) be found at:
 
 * https://till-biskup.de/de/software/dokuwiki/bibtex
+
+Eventually, the "official" documentation will live at https://www.dokuwiki.org/:
+
+* https://www.dokuwiki.org/plugin:bibtex4dw
 
 
 ## Contributing

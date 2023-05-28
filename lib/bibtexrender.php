@@ -1,6 +1,6 @@
 <?php
 /**
- * DokuWiki Plugin bibtex (BibTeX Renderer Component)
+ * DokuWiki Plugin bibtex4dw (BibTeX Renderer Component)
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup.de>
@@ -8,9 +8,9 @@
  * @date    2023-05-28
  */
 
-require_once(DOKU_PLUGIN.'bibtex/lib/bibtexparser.php');
+require_once(DOKU_PLUGIN.'bibtex4dw/lib/bibtexparser.php');
 
-class bibtexrender_plugin_bibtex {
+class bibtexrender_plugin_bibtex4dw {
 
     /**
      * Array containing all references to objects of this class that already exist.
@@ -82,8 +82,8 @@ class bibtexrender_plugin_bibtex {
     function __construct() {
         // Use trick to access configuration and language stuff from the actual bibtex plugin
         // with the builtin methods of DW
-        require_once(DOKU_PLUGIN.'bibtex/syntax/bibtex.php');
-        $this->plugin = new syntax_plugin_bibtex_bibtex();
+        require_once(DOKU_PLUGIN.'bibtex4dw/syntax/bibtex.php');
+        $this->plugin = new syntax_plugin_bibtex4dw_bibtex();
 
         // Transfer config settings from plugin config (via config manager) to local config
         // Note: Only those settings that can be changed by this class need to be transferred.
@@ -101,12 +101,12 @@ class bibtexrender_plugin_bibtex {
                 return;
             }
             // initialize the database connection
-            if(!$this->sqlite->init('bibtex', DOKU_PLUGIN.'bibtex/db/')){
+            if(!$this->sqlite->init('bibtex4dw', DOKU_PLUGIN.'bibtex4dw/db/')){
                 return;
             }
         } else {
             // If there are files to load, load and parse them
-            if (array_key_exists('file',$this->_conf)) {
+            if (array_key_exists('file', $this->_conf)) {
                 $this->_parseBibtexFile();
             }
         }
@@ -123,7 +123,7 @@ class bibtexrender_plugin_bibtex {
             return null;
         }
         if (!array_key_exists($id, self::$resources)) {
-            $x = new bibtexrender_plugin_bibtex($id);
+            $x = new bibtexrender_plugin_bibtex4dw($id);
             self::$resources[$id] = $x;
         }
         // return the desired object or null in case of error
@@ -203,7 +203,7 @@ class bibtexrender_plugin_bibtex {
         foreach($this->_conf['file'] as $file) {
             $bibtex .= $this->_loadBibtexFile($file, 'page');
         }
-        $this->_parser = new bibtexparser_plugin_bibtex();
+        $this->_parser = new bibtexparser_plugin_bibtex4dw();
         $this->_parser->loadString($bibtex);
         $stat = $this->_parser->parseBibliography();
         if ( !$stat ) {
@@ -211,7 +211,7 @@ class bibtexrender_plugin_bibtex {
         }
         //$this->_bibtex_references = $this->_parser->data;
         $this->_bibtex_references = $this->_parser->entries;
-        
+
         foreach($this->_bibtex_references as $refno => $ref) {
             if (is_array($ref) && array_key_exists('cite', $ref)) {
                 $this->_bibtex_keys[$ref['cite']] = $refno;
@@ -231,7 +231,7 @@ class bibtexrender_plugin_bibtex {
                 Change in config if this is not intended.");
             return;
         }
-        $this->_parser = new bibtexparser_plugin_bibtex();
+        $this->_parser = new bibtexparser_plugin_bibtex4dw();
         $this->_parser->loadString($bibtex);
         $this->_parser->sqlite = $this->sqlite;
         $stat = $this->_parser->parseBibliography($sqlite=true);
@@ -260,7 +260,7 @@ class bibtexrender_plugin_bibtex {
         global $INFO;
 
         if ($this->_conf['sqlite']) {
-            $this->_parser = new bibtexparser_plugin_bibtex();
+            $this->_parser = new bibtexparser_plugin_bibtex4dw();
             $this->_parser->sqlite = $this->sqlite;
             $rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$bibtex_key));
             $this->_parser->loadString($rawBibtexEntry[0]['entry']);
@@ -337,7 +337,7 @@ class bibtexrender_plugin_bibtex {
                     $citedKeys = array();
                     foreach ($this->_bibtex_keysCited as $key => $no) {
                         if ($this->_conf['sqlite']) {
-                            $this->_parser = new bibtexparser_plugin_bibtex();
+                            $this->_parser = new bibtexparser_plugin_bibtex4dw();
                             $this->_parser->sqlite = $this->sqlite;
                             $rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$key));
                             $this->_parser->loadString($rawBibtexEntry[0]['entry']);
@@ -369,7 +369,7 @@ class bibtexrender_plugin_bibtex {
                     $notcitedKeys = array();
                     foreach ($this->_bibtex_keysNotCited as $key => $no) {
                         if ($this->_conf['sqlite']) {
-                            $this->_parser = new bibtexparser_plugin_bibtex();
+                            $this->_parser = new bibtexparser_plugin_bibtex4dw();
                             $this->_parser->sqlite = $this->sqlite;
                             $rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$key));
                             $this->_parser->loadString($rawBibtexEntry[0]['entry']);
@@ -459,7 +459,7 @@ class bibtexrender_plugin_bibtex {
             $this->_bibtex_keysCited[$bibtex_key] = $this->_currentKeyNumber;
         }
         if ($this->_conf['sqlite']) {
-            $this->_parser = new bibtexparser_plugin_bibtex();
+            $this->_parser = new bibtexparser_plugin_bibtex4dw();
             $rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$bibtex_key));
             if (empty($rawBibtexEntry)) {
                 return $bibtex_key;

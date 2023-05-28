@@ -1,6 +1,6 @@
 <?php
 /**
- * DokuWiki Plugin bibtex (BibTeX Parser Component)
+ * DokuWiki Plugin bibtex4dw (BibTeX Parser Component)
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup.de>
@@ -29,7 +29,7 @@
  * This class is no longer PHP 4 compatible, as was the original PEAR package.
  */
  
-class bibtexparser_plugin_bibtex
+class bibtexparser_plugin_bibtex4dw
 {
     /**
      * Handle to SQLite db

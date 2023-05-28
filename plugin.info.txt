@@ -1,7 +1,7 @@
-base   bibtex
+base   bibtex4dw
 author Till Biskup
 email  till@till-biskup.de
 date   2023-05-28
-name   bibtex plugin
-desc   adding bibtex functionality to dokuwiki
-url    http://till-biskup.de/de/software/dokuwiki/bibtex
+name   bibtex4dw plugin
+desc   adding BibTeX functionality to DokuWiki
+url    https://www.dokuwiki.org/plugin:bibtex4dw
