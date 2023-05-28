@@ -1,4 +1,4 @@
-doo<?php
+<?php
 /**
  * Default settings for the bibtex plugin
  *

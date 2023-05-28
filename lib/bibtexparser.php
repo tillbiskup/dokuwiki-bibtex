@@ -5,7 +5,7 @@
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup.de>
  * @version 0.2
- * @date    2023-05-27
+ * @date    2023-05-28
  */
  
 /**
@@ -311,7 +311,6 @@ class bibtexparser_plugin_bibtex
         if ($sqlite) {
             $this->_issueSQLStatements();
         }
-      	//print_r($this->_sqlStatements);
         //If open is one it may be possible that the last ending brace is missing
         if (1 == $open) {
             $entrydata = $this->_parseEntry($buffer);
@@ -374,7 +373,7 @@ class bibtexparser_plugin_bibtex
 			// Look for key
 	        $matches = array();
     	    preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
-	        if ( count($matches) > 0 )
+	        if (count($matches) > 0)
     	    {
     	    	$entryType = $matches[1];
 	        	$key = $matches[2];
@@ -402,7 +401,7 @@ class bibtexparser_plugin_bibtex
         if ('@string' ==  strtolower(substr($entry, 0, 7))) {
             $matches = array();
             preg_match('/^@\w+\{(.+)/', $entry, $matches);
-            if ( count($matches) > 0 )
+            if (count($matches) > 0)
             {
             	$m = explode('=', $matches[1], 2);
             	$string = trim($m[0]);
@@ -414,7 +413,7 @@ class bibtexparser_plugin_bibtex
 			// Look for key
 	        $matches = array();
     	    preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
-	        if ( count($matches) > 0 )
+	        if (count($matches) > 0)
     	    {
     	    	$entryType = $matches[1];
 	        	$key = $matches[2];
@@ -424,15 +423,15 @@ class bibtexparser_plugin_bibtex
     }
 
     /**
-     * Extracting the data of one content
+     * Extracting the data of one bibtex entry
      *
      * The parse function splits the content into its entries.
      * Then every entry is parsed by this function.
      * It parses the entry backwards.
      * First the last '=' is searched and the value extracted from that.
      * A copy is made of the entry if warnings should be generated. This takes quite
-     * some memory but it is needed to get good warnings. If nor warnings are generated
-     * then you don have to worry about memory.
+     * some memory but it is needed to get good warnings. If no warnings are generated
+     * then you don't have to worry about memory.
      * Then the last ',' is searched and the field extracted from that.
      * Again the entry is shortened.
      * Finally after all field=>value pairs the cite and type is extraced and the
