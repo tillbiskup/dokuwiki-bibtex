@@ -35,6 +35,12 @@ Some references how to properly format the code (including PHP style guides):
 
 * https://pear.php.net/manual/en/standards.php
 
+Nowadays, it seems that the PHP-FIG guys are the most accepted, with PSR-1, PSR-12, and PER:
+
+* https://www.php-fig.org/psr/psr-1/
+* https://www.php-fig.org/psr/psr-12/
+* https://www.php-fig.org/per/coding-style/
+
 Another thing missing is a proper documentation (at least of the code as such). Coming from Python/Sphinx, documentation integrating both, API and user documentation, seems still in its infancies in PHP. However, phpDocumentor seems to be the *de facto* standard:
 
 * https://phpdoc.org/

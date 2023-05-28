@@ -57,6 +57,13 @@ class bibtexparser_plugin_bibtex
      */
     private $_strings = array();
     /**
+     * Array with the BibTex entries
+     *
+     * @access public
+     * @var array
+     */
+    public $entries = array();
+    /**
      * Array with possible Delimiters for the entries
      *
      * @access private
@@ -202,7 +209,7 @@ class bibtexparser_plugin_bibtex
      * @access public
      * @param string $option option name
      * @param mixed  $value value for the option
-     * @return mixed true on success PEAR_Error on failure
+     * @return mixed true on success (DW msg on failure)
      */
     public function setOption($option, $value)
     {
@@ -210,7 +217,8 @@ class bibtexparser_plugin_bibtex
         if (array_key_exists($option, $this->_options)) {
             $this->_options[$option] = $value;
         } else {
-//            $ret = PEAR::raiseError('Unknown option '.$option);
+            msg("Unknown option $option", 2);
+            $ret = false;
         }
         return $ret;
     }
@@ -220,20 +228,20 @@ class bibtexparser_plugin_bibtex
      *
      * @access public
      * @param string $filename Name of the file
-     * @return mixed true on success PEAR_Error on failure
+     * @return mixed true on success (DW msg on failure)
      */
     public function loadFile($filename)
     {
         if (file_exists($filename)) {
             if (($this->content = @file_get_contents($filename)) === false) {
-//                return PEAR::raiseError('Could not open file '.$filename);
+                msg("Could not open file $filename", 2);
             } else {
                 $this->_pos    = 0;
                 $this->_oldpos = 0;
                 return true;
             }
         } else {
-//            return PEAR::raiseError('Could not find file '.$filename);
+            msg("Could not find file $filename", 2);
         }
     }
 
@@ -246,14 +254,110 @@ class bibtexparser_plugin_bibtex
      */
     public function loadString($bib)
     {
-      $this->content = $bib;
-      $this->_pos    = 0;
-      $this->_oldpos = 0;
-      return true; // For compatibility with loadFile
+        $this->content = $bib;
+        $this->_pos    = 0;
+        $this->_oldpos = 0;
+        return true; // For compatibility with loadFile
     }
 
     /**
-     * Parses what is stored in content and clears the content if the parsing is successfull.
+     * Parse bibliography stored in content and clear the content if the parsing is successful.
+     *
+     * @access public
+     * @return boolean true on success and PEAR_Error if there was a problem
+     */
+    public function parse_bibliography($sqlite = false)
+    {
+        //The amount of opening braces is compared to the amount of closing braces
+        //Braces inside comments are ignored
+        $this->warnings = array();
+        $this->data     = array();
+        $valid          = true;
+        $open           = 0;
+        $entry          = false;
+        $char           = '';
+        $lastchar       = '';
+        $buffer         = '';
+        for ($i = 0; $i < strlen($this->content); $i++) {
+            $char = substr($this->content, $i, 1);
+            if ((0 != $open) && ('@' == $char)) {
+                if (!$this->_checkAt($buffer)) {
+                    $this->_generateWarning('WARNING_MISSING_END_BRACE', '', $buffer);
+                    //To correct the data we need to insert a closing brace
+                    $char     = '}';
+                    $i--;
+                }
+            }
+            if ((0 == $open) && ('@' == $char)) { //The beginning of an entry
+                $entry = true;
+            } elseif ($entry && ('{' == $char) && ('\\' != $lastchar)) { //Inside an entry and non quoted brace is opening
+                $open++;
+            } elseif ($entry && ('}' == $char) && ('\\' != $lastchar)) { //Inside an entry and non quoted brace is closing
+                $open--;
+                if ($open < 0) { //More are closed than opened
+                    $valid = false;
+                }
+                if (0 == $open) { //End of entry
+                    $entry     = false;
+                    if ($sqlite) {
+                        $this->_createInsertStatementForSQLiteDB($buffer);
+                    } else {
+                        $this->_splitBibTeXEntry($buffer);
+                    }
+                    $buffer = '';
+                }
+            }
+            if ($entry) { //Inside entry
+                $buffer .= $char;
+            }
+            $lastchar = $char;
+        }
+        if ($sqlite) {
+            $this->_issueSQLStatements();
+        }
+        //If open is one it may be possible that the last ending brace is missing
+        // TODO: Handle situation with using SQLite DB
+        if (1 == $open) {
+            $entrydata = $this->_parseEntry($buffer);
+            if (!$entrydata) {
+                $valid = false;
+            } else {
+                $this->data[] = $entrydata;
+                $buffer = '';
+                $open   = 0;
+            }
+        }
+        //At this point the open should be zero
+        if (0 != $open) {
+            $valid = false;
+        }
+        //Are there multiple entries with the same cite?
+        if ($this->_options['validate']) {
+            $cites = array();
+            foreach ($this->data as $entry) {
+                $cites[] = $entry['cite'];
+            }
+            $unique = array_unique($cites);
+            if (sizeof($cites) != sizeof($unique)) { //Some values have not been unique!
+                $notuniques = array();
+                for ($i = 0; $i < sizeof($cites); $i++) {
+                    if ('' == $unique[$i]) {
+                        $notuniques[] = $cites[$i];
+                    }
+                }
+                $this->_generateWarning('WARNING_MULTIPLE_ENTRIES', implode(',',$notuniques));
+            }
+        }
+        if ($valid) {
+            $this->content = '';
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Parses what is stored in content and clears the content if the parsing is successful.
      *
      * @access public
      * @return boolean true on success and PEAR_Error if there was a problem
@@ -312,6 +416,7 @@ class bibtexparser_plugin_bibtex
             $this->_issueSQLStatements();
         }
         //If open is one it may be possible that the last ending brace is missing
+        // TODO: Handle situation with using SQLite DB
         if (1 == $open) {
             $entrydata = $this->_parseEntry($buffer);
             if (!$entrydata) {
@@ -352,6 +457,34 @@ class bibtexparser_plugin_bibtex
     }
 
     /**
+     * Split entry in key and actual contents
+     */
+    private function _splitBibTeXEntry($entry)
+    {
+        $key = '';
+        if ('@string' ==  strtolower(substr($entry, 0, 7))) {
+            $matches = array();
+            preg_match('/^@\w+\{(.+)/', $entry, $matches);
+            if (count($matches) > 0) {
+                $m = explode('=', $matches[1], 2);
+                $string = trim($m[0]);
+                $entry = substr(trim($m[1]), 1, -1);
+                $this->_strings[$string] = $entry;
+            }
+        } else {
+            $entry = $entry.'}';
+            // Look for key
+            $matches = array();
+            preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
+            if (count($matches) > 0) {
+                $entryType = $matches[1];
+                $key = $matches[2];
+                $this->entries[$key] = $entry;
+            }
+        }
+    }
+
+    /**
      * Create insert statement for SQLite DB
      */
     private function _createInsertStatementForSQLiteDB($entry)
@@ -384,6 +517,12 @@ class bibtexparser_plugin_bibtex
         }
     }
 
+    /**
+     * Perform a series of statements in one transaction in SQLite DB
+     *
+     * Performing a series of statements in one transaction instead of
+     * performing repeated SQL queries saves a tremendous amount of time.
+     */
     private function _issueSQLStatements()
     {
         array_unshift($this->_sqlStatements, "BEGIN TRANSACTION");

@@ -5,7 +5,7 @@
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup.de>
  * @version 0.4.0
- * @date    2023-05-27
+ * @date    2023-05-28
  */
 
 require_once(DOKU_PLUGIN.'bibtex/lib/bibtexparser.php');
@@ -94,10 +94,10 @@ class bibtexrender_plugin_bibtex {
         $this->_conf['citetype'] = $this->plugin->getConf('citetype');
 
         // In case we shall use SQLite
-        if ($this->plugin->getConf('sqlite')) {
+        if ($this->_conf['sqlite']) {
             $this->sqlite = plugin_load('helper', 'sqlite');
             if(!$this->sqlite){
-                msg('You asked for using the sqlite plugin but it is not installed. Please install it');
+                msg('You asked for using the sqlite plugin but it is not installed. Please install it', -1);
                 return;
             }
             // initialize the database connection
@@ -128,7 +128,6 @@ class bibtexrender_plugin_bibtex {
         }
         // return the desired object or null in case of error
         return self::$resources[$id];
-        
     }
     
     /**
@@ -206,14 +205,15 @@ class bibtexrender_plugin_bibtex {
         }
         $this->_parser = new bibtexparser_plugin_bibtex();
         $this->_parser->loadString($bibtex);
-        $stat = $this->_parser->parse();
+        $stat = $this->_parser->parse_bibliography();
         if ( !$stat ) {
             return $stat;
         }
-        $this->_bibtex_references = $this->_parser->data;
+        //$this->_bibtex_references = $this->_parser->data;
+        $this->_bibtex_references = $this->_parser->entries;
         
         foreach($this->_bibtex_references as $refno => $ref) {
-            if (array_key_exists('cite',$ref)) {
+            if (is_array($ref) && array_key_exists('cite', $ref)) {
                 $this->_bibtex_keys[$ref['cite']] = $refno;
             }
         }
@@ -253,7 +253,7 @@ class bibtexrender_plugin_bibtex {
      */
     public function printReference($bibtex_key) {
         global $INFO;
-    
+
         if ($this->_conf['sqlite']) {
             $this->_parser = new bibtexparser_plugin_bibtex();
             $this->_parser->sqlite = $this->sqlite;
@@ -265,7 +265,14 @@ class bibtexrender_plugin_bibtex {
             }
             $ref = $this->_parser->data[0];
         } else {
-            $ref = $this->_bibtex_references[$this->_bibtex_keys[$bibtex_key]];
+            //$ref = $this->_bibtex_references[$this->_bibtex_keys[$bibtex_key]];
+            $rawBibtexEntry = $this->_bibtex_references[$bibtex_key];
+            $this->_parser->loadString($rawBibtexEntry);
+            $stat = $this->_parser->parse();
+            if ( !$stat ) {
+                return $stat;
+            }
+            $ref = $this->_parser->data[0];
         }
         if (empty($ref)) {
             return;
@@ -430,6 +437,9 @@ class bibtexrender_plugin_bibtex {
         if ($this->_conf['sqlite']) {
             $this->_parser = new bibtexparser_plugin_bibtex();
             $rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$bibtex_key));
+            if (empty($rawBibtexEntry)) {
+                return $bibtex_key;
+            }
             $this->_parser->loadString($rawBibtexEntry[0]['entry']);
             $stat = $this->_parser->parse();
             if ( !$stat ) {
@@ -438,7 +448,7 @@ class bibtexrender_plugin_bibtex {
             $ref = $this->_parser->data[0];
         } else {
             // Check whether key exists
-            if (empty($this->_bibtex_references[$this->_bibtex_keys[$bibtex_key]])) {
+            if (empty($this->_bibtex_references[$bibtex_key])) {
                 return $bibtex_key;
             }
             $ref = $this->_bibtex_references[$this->_bibtex_keys[$bibtex_key]];
@@ -503,8 +513,7 @@ class bibtexrender_plugin_bibtex {
         if ( $kind == 'file' ) {
             // FIXME: Adjust path - make it configurable
             return file_get_contents(dirname(__FILE__).'/'.$kind.'/'.$uri);
-        }
-        else if ( $kind == 'page' ) {
+        } elseif ($kind == 'page') {
             $exists = false;
             resolve_pageid($INFO['namespace'], $uri, $exists);
             if ( $exists ) {
