@@ -581,9 +581,9 @@ class bibtexparser_plugin_bibtex
      */
     private function _replaceLatex($entry) {
         // \emph{...} -> <em>...</em>
-        $entry = preg_replace("/\\\emph\{([^\}]+)\}/","<em>\\1</em>",$entry);
+        $entry = preg_replace('/\\\emph\{([^\}]+)\}/', '<em>$1</em>', $entry);
         // \textbf{...} -> <strong>...</strong>
-        $entry = preg_replace("/\\\textbf\{([^\}]+)\}/","<strong>\\1</strong>",$entry);
+        $entry = preg_replace('/\\\textbf\{([^\}]+)\}/', '<strong>$1</strong>', $entry);
         // quotation marks
         $entry = str_replace("``","&quot;",$entry);
         $entry = str_replace("''","&quot;",$entry);
