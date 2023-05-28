@@ -11,6 +11,8 @@ Possible simple solution: "bibtex" -> "bibtex2"
 
 Is there any other sensible name, though? Alternatives may include:
 
+* **bibtex4dw** (currently *strongly* preferred)
+
 * bibtexref
 * bibtexlit
 * bibtexit
@@ -18,7 +20,6 @@ Is there any other sensible name, though? Alternatives may include:
 * bibtexing
 * dwbibtex
 * bibtexdw
-* bibtex4dw
 * bibliography
 * literature
 * references
@@ -58,7 +59,7 @@ DokuWiki seems to have good messaging capabilities, hence make use of these to d
 
 Currently, the BibTeX parsing relies on rather old and badly changed code. Perhaps exchanging with newer code from the "PHP BibTeX Parser 2.x" project would be an option:
 
-  https://github.com/renanbr/bibtex-parser
+* https://github.com/renanbr/bibtex-parser
 
 That would be available via composer and seems actively developed.
 
@@ -69,11 +70,13 @@ First speed tests with a larger bibliography (>2500 entries) shows reasonable sp
 
 Nowadays there is things such as the "Citation Style Language (CSL)", and PHP processors for this thing, such as
 
-  https://github.com/seboettg/citeproc-php/
+* https://github.com/seboettg/citeproc-php/
   
 Perhaps that would be a (long-term) option to have proper handling of citation styles from within the DokuWiki BibTeX plugin.
 
 
-## Some GUI for managing bibliographies
+## Some GUI for managing bibliographies?
 
-Probably not sensible in times of Meneley, JabRef, and other much more powerful tools. But eventually...
+Probably not sensible in times of Mendeley, JabRef, and other much more powerful tools. But eventually...
+
+However, the main focus of the plugin remains allowing to reference literature from within the DokuWiki, much the same as BibTeX allows authors to reference literature in their writings. Managing a bibliographic database is an entirely different issue.
