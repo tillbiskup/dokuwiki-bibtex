@@ -205,7 +205,7 @@ class bibtexrender_plugin_bibtex {
         }
         $this->_parser = new bibtexparser_plugin_bibtex();
         $this->_parser->loadString($bibtex);
-        $stat = $this->_parser->parse_bibliography();
+        $stat = $this->_parser->parseBibliography();
         if ( !$stat ) {
             return $stat;
         }
@@ -223,13 +223,18 @@ class bibtexrender_plugin_bibtex {
      * Internal function adding the content to the SQLite database
      */
     public function addBibtexToSQLite($bibtex,$ID) {
-        if ( ($this->_conf['sqlite'] == false) || (!in_array(':'.$ID,$this->_conf['file'])) ){
+        if (!$this->_conf['sqlite']) {
+            return;
+        }
+        if (!in_array(':'.$ID, $this->_conf['file'])) {
+            msg("Current page (:$ID) not configured to be a BibTeX DB, hence ignoring.
+                Change in config if this is not intended.");
             return;
         }
         $this->_parser = new bibtexparser_plugin_bibtex();
         $this->_parser->loadString($bibtex);
         $this->_parser->sqlite = $this->sqlite;
-        $stat = $this->_parser->parse($sqlite=true);
+        $stat = $this->_parser->parseBibliography($sqlite=true);
 
         if ( !$stat ) {
             msg('Some problems with parsing BIBTeX code',-1);

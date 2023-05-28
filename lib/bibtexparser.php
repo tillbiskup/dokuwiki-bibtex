@@ -266,7 +266,7 @@ class bibtexparser_plugin_bibtex
      * @access public
      * @return boolean true on success and PEAR_Error if there was a problem
      */
-    public function parse_bibliography($sqlite = false)
+    public function parseBibliography($sqlite = false)
     {
         //The amount of opening braces is compared to the amount of closing braces
         //Braces inside comments are ignored
@@ -298,7 +298,8 @@ class bibtexparser_plugin_bibtex
                     $valid = false;
                 }
                 if (0 == $open) { //End of entry
-                    $entry     = false;
+                    $entry = false;
+                    // TODO: Some check for duplicate keys and issuing a warning if so?
                     if ($sqlite) {
                         $this->_createInsertStatementForSQLiteDB($buffer);
                     } else {
@@ -332,6 +333,8 @@ class bibtexparser_plugin_bibtex
             $valid = false;
         }
         //Are there multiple entries with the same cite?
+        // TODO: Meanwhile, as in both cases (SQLite and manual) bibtex keys are used as index,
+        //       this situation shall no longer exist. Checking for duplicate keys needs be done above.
         if ($this->_options['validate']) {
             $cites = array();
             foreach ($this->data as $entry) {
