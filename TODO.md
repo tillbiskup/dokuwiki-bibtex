@@ -9,7 +9,22 @@ Currently (and since the beginning of this plugin) there is another DokuWiki plu
 
 Possible simple solution: "bibtex" -> "bibtex2"
 
-Is there any other sensible name, though?
+Is there any other sensible name, though? Alternatives may include:
+
+* bibtexref
+* bibtexlit
+* bibtexit
+* bibtexbib
+* bibtexing
+* dwbibtex
+* bibtexdw
+* bibtex4dw
+* bibliography
+* literature
+* references
+* citation[s]
+
+Note: Underscores are strictly forbidden for names of DokuWiki plugins, generally names should only consist of letters [a-z] and numbers [0-9].
 
 
 ## Refactor plugin code

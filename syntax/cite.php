@@ -10,7 +10,7 @@
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
  * @author  Till Biskup <till@till-biskup.de>
  * @version 0.3
- * @date    2023-05-27
+ * @date    2023-05-28
  */
 
 // must be run within Dokuwiki
@@ -35,39 +35,38 @@ class syntax_plugin_bibtex_cite extends DokuWiki_Syntax_Plugin {
         return 32;
     }
 
-
     public function connectTo($mode) {
         $this->Lexer->addSpecialPattern('\{\[.+?\]\}', $mode, 'plugin_bibtex_cite');
     }
 
     public function handle($match, $state, $pos, Doku_Handler $handler){
         // Strip syntax and return only bibtex key(s)
-		preg_match('/\{\[(.+?)\]\}/', $match, $matches);
+        preg_match('/\{\[(.+?)\]\}/', $match, $matches);
         return array($matches[1], $state, $pos);
     }
 
     public function render($mode, Doku_Renderer $renderer, $data) {
-		@list($match, $state, $pos) = $data;
+        @list($match, $state, $pos) = $data;
         global $ID;
+        require_once(DOKU_PLUGIN.'bibtex/lib/bibtexrender.php');
+        $bibtexrenderer = bibtexrender_plugin_bibtex::getResource($ID);
 
-        if($mode == 'xhtml') {
-        
-            require_once(DOKU_PLUGIN.'bibtex/lib/bibtexrender.php');
-            $bibtexrenderer = bibtexrender_plugin_bibtex::getResource($ID);
-			// Check whether the reference exists, otherwise silently ignore
-			// The problem still exists when all keys in one block do not exist
-            $bibkeys = explode(',', $match);
-			if ((count($bibkeys) > 1) || $bibtexrenderer->printCitekey($match)) {
+        // Check whether the reference exists, otherwise silently ignore
+        // The problem still exists when all keys in one block do not exist
+        $bibkeys = explode(',', $match);
+        if ((count($bibkeys) > 1) || $bibtexrenderer->printCitekey($match)) {
+
+            if($mode == 'xhtml') {
                 $renderer->doc .= '[' ;
                 foreach ($bibkeys as $bibkey) {
-                    $renderer->doc .= '<span class="bibtex_citekey"><a href="#ref__' . $bibkey . '" name="reft__' . $bibkey . '" id="reft__' . $bibkey . '" class="bibtex_citekey">';
+                    $renderer->doc .= '<span class="bibtex_citekey"><a href="#ref__'
+                        . $bibkey . '" name="reft__' . $bibkey . '" id="reft__'
+                        . $bibkey . '" class="bibtex_citekey">';
                     $renderer->doc .= $bibtexrenderer->printCitekey($bibkey);
                     $renderer->doc .= '</a><span>';
                     $renderer->doc .= $bibtexrenderer->printReference($bibkey);
                     $renderer->doc .= '</span></span>';
-                
-                    // Suppress comma after last bibkey
-                    // Alternatively, the output could be done after an implode
+                    // Suppress comma after last bibkey (alternative: implode)
                     if ($bibkey != $bibkeys[sizeof($bibkeys)-1]) {
                         $renderer->doc .= ', ';
                     }
@@ -75,55 +74,31 @@ class syntax_plugin_bibtex_cite extends DokuWiki_Syntax_Plugin {
                 $renderer->doc .= "]";
             }
 
-            return true;
-            
-        }
-        
-        if($mode == 'latex') {
-
-            require_once(DOKU_PLUGIN.'bibtex/lib/bibtexrender.php');
-            $bibtexrenderer = bibtexrender_plugin_bibtex::getResource($ID);
-			// Check whether the reference exists, otherwise silently ignore
-			// The problem still exists when all keys in one block do not exist
-            $bibkeys = explode(',',$match);
-			if ((count($bibkeys) > 1) || $bibtexrenderer->printCitekey($match)) {
-				$renderer->doc .= '\cite{';
+            if($mode == 'latex') {
+                $renderer->doc .= '\cite{';
                 foreach ($bibkeys as $bibkey) {
-	                $renderer->doc .= $bibkey;
+                    $renderer->doc .= $bibkey;
+                    // Suppress comma after last bibkey (alternative: implode)
                     if ($bibkey != $bibkeys[sizeof($bibkeys)-1]) {
                         $renderer->doc .= ",";
                     }
                 }
                 $renderer->doc .= "}";
             }
-            return true;
-            
-        }
 
-        if($mode == 'odt') {
-        
-            require_once(DOKU_PLUGIN.'bibtex/lib/bibtexrender.php');
-            $bibtexrenderer = bibtexrender_plugin_bibtex::getResource($ID);
-			// Check whether the reference exists, otherwise silently ignore
-			// The problem still exists when all keys in one block do not exist
-            $bibkeys = explode(',',$match);
-			if ((count($bibkeys) > 1) || $bibtexrenderer->printCitekey($match)) {
+            if($mode == 'odt') {
                 $renderer->doc .= "[" ;
                 foreach ($bibkeys as $bibkey) {
                     $renderer->doc .= $bibtexrenderer->printCitekey($bibkey);
-                    // Suppress comma after last bibkey
-                    // Alternatively, the output could be done after an implode
+                    // Suppress comma after last bibkey (alternative: implode)
                     if ($bibkey != $bibkeys[sizeof($bibkeys)-1]) {
                         $renderer->doc .= ', ';
                     }
                 }
                 $renderer->doc .= "]";
             }
-
             return true;
-            
         }
-        
         return false;
     }
 }

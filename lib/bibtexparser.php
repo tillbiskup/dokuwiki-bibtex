@@ -295,12 +295,12 @@ class bibtexparser_plugin_bibtex
                         //$this->_addEntryToSQLiteDB($buffer);
                         $this->_createInsertStatementForSQLiteDB($buffer);
                     } else {
-	                    $entrydata = $this->_parseEntry($buffer);
-    	                if ($entrydata) {
-        	                $this->data[] = $entrydata;
-            	        }
+                        $entrydata = $this->_parseEntry($buffer);
+                        if ($entrydata) {
+                            $this->data[] = $entrydata;
+                        }
                     }
-            	    $buffer = '';
+                    $buffer = '';
                 }
             }
             if ($entry) { //Inside entry
@@ -347,7 +347,7 @@ class bibtexparser_plugin_bibtex
             $this->content = '';
             return true;
         } else {
-	        return false;
+            return false;
         }
     }
 
@@ -356,32 +356,32 @@ class bibtexparser_plugin_bibtex
      */
     private function _createInsertStatementForSQLiteDB($entry)
     {
-    	$key = '';
+        $key = '';
         if ('@string' ==  strtolower(substr($entry, 0, 7))) {
             $matches = array();
             preg_match('/^@\w+\{(.+)/', $entry, $matches);
             if (count($matches) > 0)
             {
-            	$m = explode('=', $matches[1], 2);
-            	$string = trim($m[0]);
-            	$entry = substr(trim($m[1]), 1, -1);
-            	$statement = "INSERT OR REPLACE INTO strings (string, entry) VALUES ('$string','$entry')";
-            	$this->_sqlStatements[] = $statement;
+                $m = explode('=', $matches[1], 2);
+                $string = trim($m[0]);
+                $entry = substr(trim($m[1]), 1, -1);
+                $statement = "INSERT OR REPLACE INTO strings (string, entry) VALUES ('$string','$entry')";
+                $this->_sqlStatements[] = $statement;
             }
         } else {
-	    	$entry = $entry.'}';
-			// Look for key
-	        $matches = array();
-    	    preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
-	        if (count($matches) > 0)
-    	    {
-    	    	$entryType = $matches[1];
-	        	$key = $matches[2];
-	        	$quoted_entry = $this->sqlite->escape_string($entry);
-	        	$statement = "INSERT OR REPLACE INTO bibtex (key, entry) VALUES ('$key','$quoted_entry')";
+            $entry = $entry.'}';
+            // Look for key
+            $matches = array();
+            preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
+            if (count($matches) > 0)
+            {
+                $entryType = $matches[1];
+                $key = $matches[2];
+                $quoted_entry = $this->sqlite->escape_string($entry);
+                $statement = "INSERT OR REPLACE INTO bibtex (key, entry) VALUES ('$key','$quoted_entry')";
                 $this->_sqlStatements[] = $statement;
-    	    }
-		}
+            }
+        }
     }
 
     private function _issueSQLStatements()
@@ -397,29 +397,29 @@ class bibtexparser_plugin_bibtex
      */
     private function _addEntryToSQLiteDB($entry)
     {
-    	$key = '';
+        $key = '';
         if ('@string' ==  strtolower(substr($entry, 0, 7))) {
             $matches = array();
             preg_match('/^@\w+\{(.+)/', $entry, $matches);
             if (count($matches) > 0)
             {
-            	$m = explode('=', $matches[1], 2);
-            	$string = trim($m[0]);
-            	$entry = substr(trim($m[1]), 1, -1);
-            	$this->sqlite->query("INSERT OR REPLACE INTO strings (string, entry) VALUES (?,?)", $string, $entry);
+                $m = explode('=', $matches[1], 2);
+                $string = trim($m[0]);
+                $entry = substr(trim($m[1]), 1, -1);
+                $this->sqlite->query("INSERT OR REPLACE INTO strings (string, entry) VALUES (?,?)", $string, $entry);
             }
         } else {
-	    	$entry = $entry.'}';
-			// Look for key
-	        $matches = array();
-    	    preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
-	        if (count($matches) > 0)
-    	    {
-    	    	$entryType = $matches[1];
-	        	$key = $matches[2];
-            	$this->sqlite->query("INSERT OR REPLACE INTO bibtex (key, entry) VALUES (?,?)", $key, $entry);
-    	    }
-		}
+            $entry = $entry.'}';
+            // Look for key
+            $matches = array();
+            preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
+            if (count($matches) > 0)
+            {
+                $entryType = $matches[1];
+                $key = $matches[2];
+                $this->sqlite->query("INSERT OR REPLACE INTO bibtex (key, entry) VALUES (?,?)", $key, $entry);
+            }
+        }
     }
 
     /**
@@ -454,8 +454,8 @@ class bibtexparser_plugin_bibtex
             preg_match('/^@\w+\{(.+)/' ,$entry, $matches);
             if ( count($matches) > 0 )
             {
-            	$m = explode('=',$matches[1],2);
-            	$this->_strings[trim($m[0])] = substr(trim($m[1]),1,-1);
+                $m = explode('=',$matches[1],2);
+                $this->_strings[trim($m[0])] = substr(trim($m[1]),1,-1);
             }
         } elseif ('@preamble' ==  strtolower(substr($entry, 0, 9))) {
             //Preamble not yet supported!
@@ -504,16 +504,16 @@ class bibtexparser_plugin_bibtex
                     $this->_validateValue($value, $entrycopy);
                 }
 
-				// Handle string replacements
-				// IMPORTANT: Must precede stripDelimiter call
-				if (!in_array(substr($value,0,1),array_keys($this->_delimiters))) {
-				  	if (!empty($this->sqlite)) {
-						$stringReplacement = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM strings WHERE string = ?",$value));
-						$value = $stringReplacement[0]['entry'];
-					} elseif (array_key_exists($value,$this->_strings)) {
-						$value = $this->_strings[$value];
-					}
-				}
+                // Handle string replacements
+                // IMPORTANT: Must precede stripDelimiter call
+                if (!in_array(substr($value,0,1),array_keys($this->_delimiters))) {
+                      if (!empty($this->sqlite)) {
+                        $stringReplacement = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM strings WHERE string = ?",$value));
+                        $value = $stringReplacement[0]['entry'];
+                    } elseif (array_key_exists($value,$this->_strings)) {
+                        $value = $this->_strings[$value];
+                    }
+                }
 
                 if ($this->_options['replaceLatex']) {
                     $value = $this->_replaceLatex($value);

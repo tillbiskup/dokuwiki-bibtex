@@ -7,7 +7,7 @@
  * @version 0.4.0
  * @date    2023-05-27
  */
- 
+
 require_once(DOKU_PLUGIN.'bibtex/lib/bibtexparser.php');
 
 class bibtexrender_plugin_bibtex {
@@ -30,12 +30,12 @@ class bibtexrender_plugin_bibtex {
      * Options can be set by calling setOptions($options = array())
      */
     private $_conf = array(
-    	'sqlite' => false,
-    	'file' => array(),
-    	'citetype' => '',
-    	'sort' => false,
-    	'formatstring' => array(),
-    	);
+        'sqlite' => false,
+        'file' => array(),
+        'citetype' => '',
+        'sort' => false,
+        'formatstring' => array(),
+        );
     
     /**
      * Array containing all references from the BibTeX files loaded
@@ -82,33 +82,33 @@ class bibtexrender_plugin_bibtex {
     function __construct() {
         // Use trick to access configuration and language stuff from the actual bibtex plugin
         // with the builtin methods of DW
-		require_once(DOKU_PLUGIN.'bibtex/syntax/bibtex.php');
-		$this->plugin = new syntax_plugin_bibtex_bibtex();
+        require_once(DOKU_PLUGIN.'bibtex/syntax/bibtex.php');
+        $this->plugin = new syntax_plugin_bibtex_bibtex();
 
-		// Transfer config settings from plugin config (via config manager) to local config
-		// Note: Only those settings that can be changed by this class need to be transferred.
-		// Therefore it is not necessary to transfer the format strings for the entries.
-		$this->_conf['sqlite'] = $this->plugin->getConf('sqlite');
-		$this->_conf['file'] = explode(';',$this->plugin->getConf('file'));
-		$this->_conf['pdfdir'] = explode(';',$this->plugin->getConf('pdfdir'));
-		$this->_conf['citetype'] = $this->plugin->getConf('citetype');
+        // Transfer config settings from plugin config (via config manager) to local config
+        // Note: Only those settings that can be changed by this class need to be transferred.
+        // Therefore it is not necessary to transfer the format strings for the entries.
+        $this->_conf['sqlite'] = $this->plugin->getConf('sqlite');
+        $this->_conf['file'] = explode(';',$this->plugin->getConf('file'));
+        $this->_conf['pdfdir'] = explode(';',$this->plugin->getConf('pdfdir'));
+        $this->_conf['citetype'] = $this->plugin->getConf('citetype');
 
-		// In case we shall use SQLite
-		if ($this->plugin->getConf('sqlite')) {
-			$this->sqlite = plugin_load('helper', 'sqlite');
-			if(!$this->sqlite){
-				msg('You asked for using the sqlite plugin but it is not installed. Please install it');
-				return;
-			}
-			// initialize the database connection
-			if(!$this->sqlite->init('bibtex', DOKU_PLUGIN.'bibtex/db/')){
-				return;
-			}
-		} else {
-	        // If there are files to load, load and parse them
-    	    if (array_key_exists('file',$this->_conf)) {
-        	    $this->_parseBibtexFile();
-        	}
+        // In case we shall use SQLite
+        if ($this->plugin->getConf('sqlite')) {
+            $this->sqlite = plugin_load('helper', 'sqlite');
+            if(!$this->sqlite){
+                msg('You asked for using the sqlite plugin but it is not installed. Please install it');
+                return;
+            }
+            // initialize the database connection
+            if(!$this->sqlite->init('bibtex', DOKU_PLUGIN.'bibtex/db/')){
+                return;
+            }
+        } else {
+            // If there are files to load, load and parse them
+            if (array_key_exists('file',$this->_conf)) {
+                $this->_parseBibtexFile();
+            }
         }
     }
 
@@ -118,16 +118,16 @@ class bibtexrender_plugin_bibtex {
      * @param pageid
      */
     public function getResource($id = NULL) {
-		// exit if given parameters not sufficient.
-		if (is_null($id)) {
-			return null;
-		}
-		if (!array_key_exists($id, self::$resources)) {
-    	    $x = new bibtexrender_plugin_bibtex($id);
-		    self::$resources[$id] = $x;
-		}
-		// return the desired object or null in case of error
-		return self::$resources[$id];
+        // exit if given parameters not sufficient.
+        if (is_null($id)) {
+            return null;
+        }
+        if (!array_key_exists($id, self::$resources)) {
+            $x = new bibtexrender_plugin_bibtex($id);
+            self::$resources[$id] = $x;
+        }
+        // return the desired object or null in case of error
+        return self::$resources[$id];
         
     }
     
@@ -223,22 +223,22 @@ class bibtexrender_plugin_bibtex {
      * Internal function adding the content to the SQLite database
      */
     public function addBibtexToSQLite($bibtex,$ID) {
-    	if ( ($this->_conf['sqlite'] == false) || (!in_array(':'.$ID,$this->_conf['file'])) ){
-    		return;
-		}
+        if ( ($this->_conf['sqlite'] == false) || (!in_array(':'.$ID,$this->_conf['file'])) ){
+            return;
+        }
         $this->_parser = new bibtexparser_plugin_bibtex();
         $this->_parser->loadString($bibtex);
         $this->_parser->sqlite = $this->sqlite;
         $stat = $this->_parser->parse($sqlite=true);
 
         if ( !$stat ) {
-        	msg('Some problems with parsing BIBTeX code',-1);
+            msg('Some problems with parsing BIBTeX code',-1);
         }
 
         if ( ($this->_parser->warnings['warning']) && (count($this->_parser->warnings['warning']))) {
-        	foreach($this->_parser->warnings as $parserWarning) {
-        		msg($this->_parser->warnings[$parserWarning]['warning'],'2');
-        	}
+            foreach($this->_parser->warnings as $parserWarning) {
+                msg($this->_parser->warnings[$parserWarning]['warning'],'2');
+            }
         }
     }
 
@@ -252,21 +252,21 @@ class bibtexrender_plugin_bibtex {
      * @return string (HTML) formatted BibTeX reference
      */
     public function printReference($bibtex_key) {
-    	global $INFO;
+        global $INFO;
     
-    	if ($this->_conf['sqlite']) {
-			$this->_parser = new bibtexparser_plugin_bibtex();
-			$this->_parser->sqlite = $this->sqlite;
-			$rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$bibtex_key));
-			$this->_parser->loadString($rawBibtexEntry[0]['entry']);
-			$stat = $this->_parser->parse();
-        	if ( !$stat ) {
-    	        return $stat;
-	        }
-			$ref = $this->_parser->data[0];
-    	} else {
-	        $ref = $this->_bibtex_references[$this->_bibtex_keys[$bibtex_key]];
-	    }
+        if ($this->_conf['sqlite']) {
+            $this->_parser = new bibtexparser_plugin_bibtex();
+            $this->_parser->sqlite = $this->sqlite;
+            $rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$bibtex_key));
+            $this->_parser->loadString($rawBibtexEntry[0]['entry']);
+            $stat = $this->_parser->parse();
+            if ( !$stat ) {
+                return $stat;
+            }
+            $ref = $this->_parser->data[0];
+        } else {
+            $ref = $this->_bibtex_references[$this->_bibtex_keys[$bibtex_key]];
+        }
         if (empty($ref)) {
             return;
         }
@@ -285,17 +285,17 @@ class bibtexrender_plugin_bibtex {
         // Handle PDF files
         // Check whether we have a directory for PDF files
         if (array_key_exists('pdfdir',$this->_conf)) {
-        	// Check whether we are logged in and have permissions to access the PDFs
-			if ((auth_quickaclcheck($this->_conf['pdfdir'][0]) >= AUTH_READ) && 
-				array_key_exists('name',$INFO['userinfo'])) {
-			    // do sth.
-			    $pdffilename = mediaFN($this->_conf['pdfdir'][0]) . "/" . $bibtex_key . ".pdf";
-			    if (file_exists($pdffilename)) {
-					resolve_mediaid($this->_conf['pdfdir'][0], $pdflinkname, $exists);
-			    	$formatstring = $formatstring . '&nbsp;<a href="' . 
-			    	ml($pdflinkname) . "/" . $bibtex_key . ".pdf" . '">PDF</a>';
-			    }
-			}
+            // Check whether we are logged in and have permissions to access the PDFs
+            if ((auth_quickaclcheck($this->_conf['pdfdir'][0]) >= AUTH_READ) && 
+                array_key_exists('name',$INFO['userinfo'])) {
+                // do sth.
+                $pdffilename = mediaFN($this->_conf['pdfdir'][0]) . "/" . $bibtex_key . ".pdf";
+                if (file_exists($pdffilename)) {
+                    resolve_mediaid($this->_conf['pdfdir'][0], $pdflinkname, $exists);
+                    $formatstring = $formatstring . '&nbsp;<a href="' . 
+                    ml($pdflinkname) . "/" . $bibtex_key . ".pdf" . '">PDF</a>';
+                }
+            }
         }
 
         return $formatstring;
@@ -313,32 +313,32 @@ class bibtexrender_plugin_bibtex {
                 if (!isset($this->_bibtex_keysCited) || empty($this->_bibtex_keysCited)) {
                     return;
                 }
-				// If there are nocite entries
+                // If there are nocite entries
                 if (isset($this->_bibtex_keysNotCited) && !empty($this->_bibtex_keysNotCited)) {
-                	foreach ($this->_bibtex_keysNotCited as $key => $no) {
-                		if (!array_key_exists($key,$this->_bibtex_keysCited)) {
-	                		$this->_bibtex_keysCited[$key] = ++$this->_currentKeyNumber;
-	                	}
-	                }
+                    foreach ($this->_bibtex_keysNotCited as $key => $no) {
+                        if (!array_key_exists($key,$this->_bibtex_keysCited)) {
+                            $this->_bibtex_keysCited[$key] = ++$this->_currentKeyNumber;
+                        }
+                    }
                 }
                 if ('true' == $this->_conf['sort'] && 'numeric' != $this->_conf['citetype']) {
                     $citedKeys = array();
                     foreach ($this->_bibtex_keysCited as $key => $no) {
-			    		if ($this->_conf['sqlite']) {
-							$this->_parser = new bibtexparser_plugin_bibtex();
-							$this->_parser->sqlite = $this->sqlite;
-							$rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$key));
-							$this->_parser->loadString($rawBibtexEntry[0]['entry']);
-							$stat = $this->_parser->parse();
-			        		if ( !$stat ) {
-			    	    	    return $stat;
-					        }
-                	        $citedKeys[$key] = $this->_parser->data[0]['authoryear'];
-				    	} else {
-                	        $citedKeys[$key] = $this->_bibtex_references[$this->_bibtex_keys[$key]]['authoryear'];
-	                    }
-	    	        }
-    	            asort($citedKeys);
+                        if ($this->_conf['sqlite']) {
+                            $this->_parser = new bibtexparser_plugin_bibtex();
+                            $this->_parser->sqlite = $this->sqlite;
+                            $rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$key));
+                            $this->_parser->loadString($rawBibtexEntry[0]['entry']);
+                            $stat = $this->_parser->parse();
+                            if ( !$stat ) {
+                                return $stat;
+                            }
+                            $citedKeys[$key] = $this->_parser->data[0]['authoryear'];
+                        } else {
+                            $citedKeys[$key] = $this->_bibtex_references[$this->_bibtex_keys[$key]]['authoryear'];
+                        }
+                    }
+                    asort($citedKeys);
                 } else {
                     $citedKeys = $this->_bibtex_keysCited;
                 }
@@ -371,19 +371,19 @@ class bibtexrender_plugin_bibtex {
                 if ('true' == $this->_conf['sort']) {
                     $notcitedKeys = array();
                     foreach ($this->_bibtex_keysNotCited as $key => $no) {
-			    		if ($this->_conf['sqlite']) {
-							$this->_parser = new bibtexparser_plugin_bibtex();
-							$this->_parser->sqlite = $this->sqlite;
-							$rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$key));
-							$this->_parser->loadString($rawBibtexEntry[0]['entry']);
-							$stat = $this->_parser->parse();
-			        		if ( !$stat ) {
-			    	    	    return $stat;
-					        }
-                	        $notcitedKeys[$key] = $this->_parser->data[0]['authoryear'];
-				    	} else {
-                	        $notcitedKeys[$key] = $this->_bibtex_references[$this->_bibtex_keys[$key]]['authoryear'];
-	                    }
+                        if ($this->_conf['sqlite']) {
+                            $this->_parser = new bibtexparser_plugin_bibtex();
+                            $this->_parser->sqlite = $this->sqlite;
+                            $rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$key));
+                            $this->_parser->loadString($rawBibtexEntry[0]['entry']);
+                            $stat = $this->_parser->parse();
+                            if ( !$stat ) {
+                                return $stat;
+                            }
+                            $notcitedKeys[$key] = $this->_parser->data[0]['authoryear'];
+                        } else {
+                            $notcitedKeys[$key] = $this->_bibtex_references[$this->_bibtex_keys[$key]]['authoryear'];
+                        }
                     }
                     asort($notcitedKeys);
                 } else {
@@ -423,26 +423,26 @@ class bibtexrender_plugin_bibtex {
      * @return string cite key of the reference (according to the citetype set)
      */
     public function printCitekey($bibtex_key) {
-		if (!array_key_exists($bibtex_key,$this->_bibtex_keysCited)) {
-			$this->_currentKeyNumber++;
-			$this->_bibtex_keysCited[$bibtex_key] = $this->_currentKeyNumber;
-		}
-    	if ($this->_conf['sqlite']) {
-			$this->_parser = new bibtexparser_plugin_bibtex();
-			$rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$bibtex_key));
-			$this->_parser->loadString($rawBibtexEntry[0]['entry']);
-			$stat = $this->_parser->parse();
-        	if ( !$stat ) {
-    	        return $stat;
-	        }
-			$ref = $this->_parser->data[0];
-    	} else {
-    	    // Check whether key exists
-	        if (empty($this->_bibtex_references[$this->_bibtex_keys[$bibtex_key]])) {
-        	    return $bibtex_key;
-    	    }
-	        $ref = $this->_bibtex_references[$this->_bibtex_keys[$bibtex_key]];
-	    }
+        if (!array_key_exists($bibtex_key,$this->_bibtex_keysCited)) {
+            $this->_currentKeyNumber++;
+            $this->_bibtex_keysCited[$bibtex_key] = $this->_currentKeyNumber;
+        }
+        if ($this->_conf['sqlite']) {
+            $this->_parser = new bibtexparser_plugin_bibtex();
+            $rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$bibtex_key));
+            $this->_parser->loadString($rawBibtexEntry[0]['entry']);
+            $stat = $this->_parser->parse();
+            if ( !$stat ) {
+                return $stat;
+            }
+            $ref = $this->_parser->data[0];
+        } else {
+            // Check whether key exists
+            if (empty($this->_bibtex_references[$this->_bibtex_keys[$bibtex_key]])) {
+                return $bibtex_key;
+            }
+            $ref = $this->_bibtex_references[$this->_bibtex_keys[$bibtex_key]];
+        }
         switch ($this->_conf['citetype']) {
             case 'apa':
                 $bibtex_key = $ref['authors'][0]['last'];
