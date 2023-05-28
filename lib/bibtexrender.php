@@ -350,24 +350,9 @@ class bibtexrender_plugin_bibtex {
                     $citedKeys = $this->_bibtex_keysCited;
                 }
                 if ('authordate' == $this->_conf['citetype']) {
-                    $html = '<ul class="bibtex_references">' . DOKU_LF;
-                    foreach ($citedKeys as $key => $no) {
-                        $html .= '<li><div class="li" name="ref__' . $key . '" id="ref__'. $key . '">';
-                        $html .= $this->printReference($key);
-                        $html .= '</div></li>' . DOKU_LF;
-                    }
-                    $html .= '</ul>';
+                    $html = $this->_printReferencesAsUnorderedList($citedKeys);
                 } else {
-                    $html = '<dl class="bibtex_references">' . DOKU_LF;
-                    foreach ($citedKeys as $key => $no) {
-                        $html .= '<dt name="ref__' . $key . '" id="ref__'. $key . '">[';
-                        $html .= $this->printCitekey($key);
-                        $html .= ']</dt>' . DOKU_LF;
-                        $html .= '<dd>';
-                        $html .= $this->printReference($key);
-                        $html .= '</dd>' . DOKU_LF;
-                    }
-                    $html .= '</dl>';
+                    $html = $this->_printReferencesAsDefinitionlist($citedKeys);
                 }
                 return $html;
             case 'furtherreading':
@@ -397,27 +382,61 @@ class bibtexrender_plugin_bibtex {
                     $notcitedKeys = $this->_bibtex_keysNotCited;
                 }
                 if ('authordate' == $this->_conf['citetype']) {
-                    $html = '<ul class="bibtex_references">' . DOKU_LF;
-                    foreach ($notcitedKeys as $key => $no) {
-                        $html .= '<li><div class="li">';
-                        $html .= $this->printReference($key);
-                        $html .= '</div></li>' . DOKU_LF;
-                    }
-                    $html .= '</ul>';
+                    $html = $this->_printReferencesAsUnorderedList($notcitedKeys);
                 } else {
-                    $html = '<dl class="bibtex_references">' . DOKU_LF;
-                    foreach ($notcitedKeys as $key => $no) {
-                        $html .= '<dt>[';
-                        $html .= $this->printCitekey($key);
-                        $html .= ']</dt>' . DOKU_LF;
-                        $html .= '<dd>';
-                        $html .= $this->printReference($key);
-                        $html .= '</dd>' . DOKU_LF;
-                    }
-                    $html .= '</dl>';
+                    $html = $this->_printReferencesAsDefinitionlist($notcitedKeys);
                 }
                 return $html;
         }
+    }
+
+    /**
+     * Print references as unordered list
+     *
+     * Currently used only for "authordate" citation style
+     *
+     * @param array List of keys bibliography should be generated for
+     * @return string rendered HTML of bibliography
+     */
+    function _printReferencesAsUnorderedList($citedKeys) {
+        $html = '<ul class="bibtex_references">' . DOKU_LF;
+        foreach ($citedKeys as $key => $no) {
+            if ($this->keyExists($key)) {
+                $html .= '<li><div class="li" name="ref__' . $key . '" id="ref__'. $key . '">';
+                $html .= $this->printReference($key);
+                $html .= '</div></li>' . DOKU_LF;
+            } else {
+                msg("BibTeX key '$key' could not be found. Possible typo?");
+            }
+        }
+        $html .= '</ul>';
+        return $html;
+    }
+
+    /**
+     * Print references as definitionlist
+     *
+     * Currently used for all citation styles except "authordate"
+     *
+     * @param array List of keys bibliography should be generated for
+     * @return string rendered HTML of bibliography
+     */
+    function _printReferencesAsDefinitionlist($citedKeys) {
+        $html = '<dl class="bibtex_references">' . DOKU_LF;
+        foreach ($citedKeys as $key => $no) {
+            if ($this->keyExists($key)) {
+                $html .= '<dt>[';
+                $html .= $this->printCitekey($key);
+                $html .= ']</dt>' . DOKU_LF;
+                $html .= '<dd>';
+                $html .= $this->printReference($key);
+                $html .= '</dd>' . DOKU_LF;
+            } else {
+                msg("BibTeX key '$key' could not be found. Possible typo?");
+            }
+        }
+        $html .= '</dl>';
+        return $html;
     }
 
     /**
@@ -484,6 +503,21 @@ class bibtexrender_plugin_bibtex {
                 break;
         }
         return $bibtex_key;
+    }
+
+    /**
+     * Check if given key exists in currently used BibTeX database
+     *
+     * @param string  bibtex key of the reference
+     * @return Boolean value
+     */
+    function keyExists($bibkey) {
+        if ($this->_conf['sqlite']) {
+            $rawBibtexEntry = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM bibtex WHERE key=?",$bibkey));
+            return (!empty($rawBibtexEntry));
+        } else {
+            return (!empty($this->_bibtex_references[$bibkey]));
+        }
     }
     
     /**

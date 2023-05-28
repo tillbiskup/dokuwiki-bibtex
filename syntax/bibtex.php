@@ -5,7 +5,10 @@
 /**
  * DokuWiki Plugin bibtex (Syntax Component)
  *
- * Parse bibtex-blocks in xhtml mode
+ * Parse <bibtex>...</bibtex> blocks in xhtml mode.bibtex
+ *
+ * For parsing the citation commands (i.e., actual references to the literature)
+ * see the file "cite.php".
  *
  * PHP versions 5, 7 and 8
  *

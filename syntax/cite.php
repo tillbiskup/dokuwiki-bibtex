@@ -5,6 +5,11 @@
 /**
  * DokuWiki Plugin bibtex (Syntax Component)
  *
+ * Parse citation commands (i.e., actual references to the literature)
+ *
+ * For parsing the <bibtex>...</bibtex> structures of the markup,
+ * see the file "bibtex.php".
+ *
  * PHP versions 5, 7 and 8
  *
  * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
@@ -59,16 +64,20 @@ class syntax_plugin_bibtex_cite extends DokuWiki_Syntax_Plugin {
             if($mode == 'xhtml') {
                 $renderer->doc .= '[' ;
                 foreach ($bibkeys as $bibkey) {
-                    $renderer->doc .= '<span class="bibtex_citekey"><a href="#ref__'
-                        . $bibkey . '" name="reft__' . $bibkey . '" id="reft__'
-                        . $bibkey . '" class="bibtex_citekey">';
-                    $renderer->doc .= $bibtexrenderer->printCitekey($bibkey);
-                    $renderer->doc .= '</a><span>';
-                    $renderer->doc .= $bibtexrenderer->printReference($bibkey);
-                    $renderer->doc .= '</span></span>';
-                    // Suppress comma after last bibkey (alternative: implode)
-                    if ($bibkey != $bibkeys[sizeof($bibkeys)-1]) {
-                        $renderer->doc .= ', ';
+                    if ($bibtexrenderer->keyExists($bibkey)) {
+                        $renderer->doc .= '<span class="bibtex_citekey"><a href="#ref__'
+                            . $bibkey . '" name="reft__' . $bibkey . '" id="reft__'
+                            . $bibkey . '" class="bibtex_citekey">';
+                        $renderer->doc .= $bibtexrenderer->printCitekey($bibkey);
+                        $renderer->doc .= '</a><span>';
+                        $renderer->doc .= $bibtexrenderer->printReference($bibkey);
+                        $renderer->doc .= '</span></span>';
+                        // Suppress comma after last bibkey (alternative: implode)
+                        if ($bibkey != $bibkeys[sizeof($bibkeys)-1]) {
+                            $renderer->doc .= ', ';
+                        }
+                    } else {
+                        $renderer->doc .= $bibkey;
                     }
                 }
                 $renderer->doc .= "]";
