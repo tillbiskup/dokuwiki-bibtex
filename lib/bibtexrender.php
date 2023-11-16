@@ -117,7 +117,7 @@ class bibtexrender_plugin_bibtex4dw {
      *
      * @param pageid
      */
-    public function getResource($id = NULL) {
+    public static function getResource($id = NULL) {
         // exit if given parameters not sufficient.
         if (is_null($id)) {
             return null;
