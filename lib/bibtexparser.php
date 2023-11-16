@@ -745,7 +745,8 @@ class bibtexparser_plugin_bibtex4dw
         // \url{...} -> ...
         $entry = preg_replace("/\\\url\{([^\}]+)\}/",'<a href="\\1">\\1</a>',$entry);
         // Handle umlauts
-        $entry = preg_replace('/\\\"([aeiouyAEIOU]?)/',"&\\1uml;",$entry);
+        $entry = preg_replace('/\\\"\{([aeiouyAEIOU])\}/',"&\\1uml;",$entry);
+        $entry = preg_replace('/\\\"([aeiouyAEIOU])/',"&\\1uml;",$entry);
         $entry = str_replace("\ss","&szlig;",$entry);
         $entry = str_replace('"s',"&szlig;",$entry);
         // Handle accents
