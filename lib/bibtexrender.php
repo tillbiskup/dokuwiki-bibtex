@@ -290,10 +290,14 @@ class bibtexrender_plugin_bibtex4dw {
         }
         // Replace each field name with respective value
         foreach ($ref as $field => $value) {
+            if (!is_string($value)) {
+                continue;  // Skip leftovers of author sorting
+            }
             $formatstring = str_replace(strtoupper($field), $value, $formatstring);
         }
         // Handle case of no author, but editor
         $formatstring = str_replace('AUTHOR', $ref['editor'] . " (" . $this->plugin->getLang('editorabbrev') . ")", $formatstring);
+        // TODO what about leftovers in format string, e.g., if bibtex does not contain an editor?
         // Handle PDF files
         // Check whether we have a directory for PDF files
         if (array_key_exists('pdfdir',$this->_conf)) {
