@@ -525,12 +525,15 @@ class bibtexparser_plugin_bibtex4dw
      *
      * Performing a series of statements in one transaction instead of
      * performing repeated SQL queries saves a tremendous amount of time.
+     * TODO: Check whether this actually results in a single transaction.
      */
     private function _issueSQLStatements()
     {
         array_unshift($this->_sqlStatements, "BEGIN TRANSACTION");
         $this->_sqlStatements[] = "COMMIT;";
-        $this->sqlite->doTransaction($this->_sqlStatements, $sqlpreparing = false);
+        foreach ($this->_sqlStatements as $sqlStatement) {
+            $this->sqlite->query("$sqlStatement;");
+        }
         $this->_sqlStatements = [];
     }
 
