@@ -282,22 +282,33 @@ class bibtexrender_plugin_bibtex4dw {
         if (empty($ref)) {
             return;
         }
+        // Variant of $ref with normalized (i.e., all uppercase) field names
+        $normalizedRef = [];
+        foreach ($ref as $key => $value) {
+            $normalizedRef[strtoupper($key)] = $value;
+        }
         // Get format string from plugin config
-        $formatstring = $this->plugin->getConf('fmtstr_'.$ref['entrytype']);
+        $formatstring = $this->plugin->getConf('fmtstr_'.$normalizedRef['ENTRYTYPE']);
         // Replace each language string ($this->_langStrings) with respective value
+        // TODO adapt language-specific strings to work similar to fields (see below)
         foreach ($this->_langStrings as $lang) {
             $formatstring = str_replace(strtoupper($lang), $this->plugin->getLang($lang), $formatstring);
         }
-        // Replace each field name with respective value
-        foreach ($ref as $field => $value) {
-            if (!is_string($value)) {
-                continue;  // Skip leftovers of author sorting
+        // Replace each field pattern '{...@FIELDNAME@...}' with respective value from bib data
+        $formattedString = "";
+        preg_match_all("#\{([^@]*)@([A-Z]+)@([^@]*)\}#U", $formatstring, $fieldsToBeReplaced, PREG_SET_ORDER);
+        foreach ($fieldsToBeReplaced as $matchPair) {
+            $partOfFormatstring = $matchPair[0];
+            $priorToName = $matchPair[1];
+            $fieldName = $matchPair[2];
+            $afterName = $matchPair[3];
+            if (empty($normalizedRef[$fieldName])) {
+                continue;
             }
-            $formatstring = str_replace(strtoupper($field), $value, $formatstring);
+            $formattedString .= $priorToName;
+            $formattedString .= $normalizedRef[$fieldName];
+            $formattedString .= $afterName;
         }
-        // Handle case of no author, but editor
-        $formatstring = str_replace('AUTHOR', $ref['editor'] . " (" . $this->plugin->getLang('editorabbrev') . ")", $formatstring);
-        // TODO what about leftovers in format string, e.g., if bibtex does not contain an editor?
         // Handle PDF files
         // Check whether we have a directory for PDF files
         if (array_key_exists('pdfdir',$this->_conf)) {
@@ -308,13 +319,13 @@ class bibtexrender_plugin_bibtex4dw {
                 $pdffilename = mediaFN($this->_conf['pdfdir'][0]) . "/" . $bibtex_key . ".pdf";
                 if (file_exists($pdffilename)) {
                     resolve_mediaid($this->_conf['pdfdir'][0], $pdflinkname, $exists);
-                    $formatstring = $formatstring . '&nbsp;<a href="' . 
+                    $formattedString .= '&nbsp;<a href="' . 
                     ml($pdflinkname) . "/" . $bibtex_key . ".pdf" . '">PDF</a>';
                 }
             }
         }
 
-        return $formatstring;
+        return $formattedString;
     }
 
     /**
