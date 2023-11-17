@@ -89,8 +89,12 @@ class syntax_plugin_bibtex4dw_bibtex extends DokuWiki_Syntax_Plugin {
 
                     // split $match line by line
                     $matches = preg_split("/\r?\n/", trim($match));
+                    $options = array();
                     // Add key-value pairs into options array
                     foreach ($matches as $option) {
+                        if ($option == trim($match)) {
+                            continue; // No match => preg_split returns its input as only array element
+                        }
                         $opt = explode('=', $option, 2);
                         $options[$opt[0]][] = $opt[1];
                     }
@@ -105,7 +109,7 @@ class syntax_plugin_bibtex4dw_bibtex extends DokuWiki_Syntax_Plugin {
                             if (array_key_exists('nocite', $options)) {
                                 $oopt['nocite'] = $options['nocite'];
                             }
-                            if ($oopt) {
+                            if (!empty($oopt)) {
                                 $bibtexrenderer->setOptions($oopt);
                             }
                             $bibtex = $bibtexrenderer->printBibliography($substate);
