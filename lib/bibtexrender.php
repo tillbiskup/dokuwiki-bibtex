@@ -37,14 +37,14 @@ class bibtexrender_plugin_bibtex4dw {
         'formatstring' => array(),
         );
     
-    /**
-     * Array containing all references from the BibTeX files loaded
-     */
     private $_langStrings = array(
         'pageabbrev',
         'pagesabbrev',
         'chapterabbrev',
         'editorabbrev',
+        'mastersthesis',
+        'phdthesis',
+        'techreport'
         );
     
     /**
