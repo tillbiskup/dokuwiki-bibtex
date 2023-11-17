@@ -17,6 +17,7 @@ $lang['chapterabbrev'] = 'ch.';
 $lang['mastersthesis'] = 'Masters thesis';
 $lang['phdthesis'] = 'PhD thesis';
 $lang['techreport'] = 'Technical report';
+$lang['unpublished'] = 'unpublished';
 
 
 //Setup VIM: ex: et ts=4 :

@@ -44,7 +44,8 @@ class bibtexrender_plugin_bibtex4dw {
         'editorabbrev',
         'mastersthesis',
         'phdthesis',
-        'techreport'
+        'techreport',
+        'unpublished'
         );
     
     /**
