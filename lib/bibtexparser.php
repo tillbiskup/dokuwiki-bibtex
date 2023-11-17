@@ -1063,8 +1063,8 @@ class bibtexparser_plugin_bibtex4dw
                                 $islast = true;
                                 for ($k=($j+1); $k<($size-1); $k++) {
                                     $futurecase = $this->_determineCase($tmparray[$k]);
-                                    if (PEAR::isError($case)) {
-                                        // IGNORE?
+                                    if ($case == PHP_INT_MAX) {
+                                        // Error case. IGNORE?
                                     } elseif (0 == $futurecase) {
                                         $islast = false;
                                     }
@@ -1155,7 +1155,7 @@ class bibtexparser_plugin_bibtex4dw
      *
      * @access private
      * @param string $word
-     * @return int The Case or PEAR_Error if there was a problem
+     * @return int The Case or PHP_INT_MAX if there was a problem
      */
     private function _determineCase($word) {
         $ret         = -1;
@@ -1186,6 +1186,7 @@ class bibtexparser_plugin_bibtex4dw
                 }
             }
         } else {
+            $ret = PHP_INT_MAX;
 //            $ret = PEAR::raiseError('Could not determine case on word: '.(string)$word);
         }
         return $ret;
