@@ -518,8 +518,9 @@ class bibtexparser_plugin_bibtex4dw
                 $m = explode('=', $matches[1], 2);
                 $string = trim($m[0]);
                 $entry = substr(trim($m[1]), 1, -1);
-                $statement = "INSERT OR REPLACE INTO strings (string, entry) VALUES ('$string','$entry')";
-                $this->_sqlStatements[] = $statement;
+                //$statement = "INSERT OR REPLACE INTO strings (string, entry) VALUES ('$string','$entry')";
+                $this->sqlite->query("INSERT OR REPLACE INTO strings (string, entry) VALUES (?, ?)", $string, $entry);
+                //$this->_sqlStatements[] = $statement;
             }
         } else {
             $entry = $entry.'}';
@@ -671,7 +672,11 @@ class bibtexparser_plugin_bibtex4dw
                 if (!in_array(substr($value,0,1),array_keys($this->_delimiters))) {
                       if (!empty($this->sqlite)) {
                         $stringReplacement = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM strings WHERE string = ?",$value));
-                        $value = $stringReplacement[0]['entry'];
+                        if (empty($stringReplacement)) {
+                            $value = '';
+                        } else {
+                            $value = $stringReplacement[0]['entry'];
+                        }
                     } elseif (array_key_exists($value,$this->_strings)) {
                         $value = $this->_strings[$value];
                     }
