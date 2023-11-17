@@ -614,9 +614,7 @@ class bibtexparser_plugin_bibtex4dw
                 if (!in_array(substr($value,0,1),array_keys($this->_delimiters))) {
                       if (!empty($this->sqlite)) {
                         $stringReplacement = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM strings WHERE string = ?",$value));
-                        if (empty($stringReplacement)) {
-                            $value = '';
-                        } else {
+                        if (!empty($stringReplacement)) {
                             $value = $stringReplacement[0]['entry'];
                         }
                     } elseif (array_key_exists($value,$this->_strings)) {
