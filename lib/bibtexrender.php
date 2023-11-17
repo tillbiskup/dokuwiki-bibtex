@@ -290,7 +290,7 @@ class bibtexrender_plugin_bibtex4dw {
         }
         // Get format string from plugin config
         $formatstring = $this->plugin->getConf('fmtstr_'.$normalizedRef['ENTRYTYPE']);
-         // Replace each language string ($this->_langStrings) pattern '@placeholder@' with respective value
+        // Replace each language string ($this->_langStrings) pattern '@placeholder@' with respective value
         foreach ($this->_langStrings as $lang) {
             $formatstring = str_replace('@'.strtolower($lang).'@', $this->plugin->getLang($lang), $formatstring);
         }

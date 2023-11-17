@@ -718,6 +718,13 @@ class bibtexparser_plugin_bibtex4dw
                 // Array with all the authors in $ret['authors']
                 $ret['authors'] = $this->_extractAuthors($ret['author']);
                 // AuthorYear for sorting purposes in $ref['authoryear']
+                if (empty($ret['year'])) {
+                    if (!empty($ret['date']) && preg_match('|(\d\d\d\d).*|U', $ret['date'], $matches)) {
+                        $ret['year'] = $matches[1];
+                    } else {
+                        $ret['year'] = '[n.d.]';
+                    }
+                }
                 $ret['authoryear'] = $ret['authors'][0]['last'] . $ret['year'];
                 // Nicely formatted authors list in $ret['author']
                 $tmparray = array();
