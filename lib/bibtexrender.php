@@ -290,10 +290,9 @@ class bibtexrender_plugin_bibtex4dw {
         }
         // Get format string from plugin config
         $formatstring = $this->plugin->getConf('fmtstr_'.$normalizedRef['ENTRYTYPE']);
-        // Replace each language string ($this->_langStrings) with respective value
-        // TODO adapt language-specific strings to work similar to fields (see below)
+         // Replace each language string ($this->_langStrings) pattern '@placeholder@' with respective value
         foreach ($this->_langStrings as $lang) {
-            $formatstring = str_replace(strtoupper($lang), $this->plugin->getLang($lang), $formatstring);
+            $formatstring = str_replace('@'.strtolower($lang).'@', $this->plugin->getLang($lang), $formatstring);
         }
         // Replace each field pattern '{...@FIELDNAME@...}' with respective value from bib data
         preg_match_all("#\{([^@]*)@([A-Z]+)@([^@]*)\}#U", $formatstring, $fieldsToBeReplaced, PREG_SET_ORDER);
