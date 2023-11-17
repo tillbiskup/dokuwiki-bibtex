@@ -295,7 +295,6 @@ class bibtexrender_plugin_bibtex4dw {
             $formatstring = str_replace(strtoupper($lang), $this->plugin->getLang($lang), $formatstring);
         }
         // Replace each field pattern '{...@FIELDNAME@...}' with respective value from bib data
-        $formattedString = "";
         preg_match_all("#\{([^@]*)@([A-Z]+)@([^@]*)\}#U", $formatstring, $fieldsToBeReplaced, PREG_SET_ORDER);
         foreach ($fieldsToBeReplaced as $matchPair) {
             $partOfFormatstring = $matchPair[0];
@@ -303,11 +302,13 @@ class bibtexrender_plugin_bibtex4dw {
             $fieldName = $matchPair[2];
             $afterName = $matchPair[3];
             if (empty($normalizedRef[$fieldName])) {
+                $formatstring = str_replace($partOfFormatstring, "", $formatstring);
                 continue;
             }
-            $formattedString .= $priorToName;
-            $formattedString .= $normalizedRef[$fieldName];
-            $formattedString .= $afterName;
+            $formattedPart = $priorToName;
+            $formattedPart .= $normalizedRef[$fieldName];
+            $formattedPart .= $afterName;
+            $formatstring = str_replace($partOfFormatstring, $formattedPart, $formatstring);
         }
         // Handle PDF files
         // Check whether we have a directory for PDF files
@@ -319,13 +320,13 @@ class bibtexrender_plugin_bibtex4dw {
                 $pdffilename = mediaFN($this->_conf['pdfdir'][0]) . "/" . $bibtex_key . ".pdf";
                 if (file_exists($pdffilename)) {
                     resolve_mediaid($this->_conf['pdfdir'][0], $pdflinkname, $exists);
-                    $formattedString .= '&nbsp;<a href="' . 
+                    $formatstring .= '&nbsp;<a href="' . 
                     ml($pdflinkname) . "/" . $bibtex_key . ".pdf" . '">PDF</a>';
                 }
             }
         }
 
-        return $formattedString;
+        return $formatstring;
     }
 
     /**
