@@ -278,9 +278,12 @@ class bibtexparser_plugin_bibtex4dw
         $char           = '';
         $lastchar       = '';
         $buffer         = '';
+        $inField        = false;
+        $openInField    = 0;
+        $lastNonWsChar  = '';
         for ($i = 0; $i < strlen($this->content); $i++) {
             $char = substr($this->content, $i, 1);
-            if ((0 != $open) && ('@' == $char)) {
+            if ((0 != $open) && ('@' == $char) && (!$inField)) {
                 if (!$this->_checkAt($buffer)) {
                     $this->_generateWarning('WARNING_MISSING_END_BRACE', '', $buffer);
                     //To correct the data we need to insert a closing brace
@@ -292,8 +295,19 @@ class bibtexparser_plugin_bibtex4dw
                 $entry = true;
             } elseif ($entry && ('{' == $char) && ('\\' != $lastchar)) { //Inside an entry and non quoted brace is opening
                 $open++;
+                if (!$inField && ($lastNonWsChar == '=')) {
+                    $inField = true;
+                } elseif ($inField) {
+                    $openInField++;
+                }
             } elseif ($entry && ('}' == $char) && ('\\' != $lastchar)) { //Inside an entry and non quoted brace is closing
                 $open--;
+                if ($inField) {
+                    $openInField--;
+                    if ($openInField == 0) {
+                        $inField = false;
+                    }
+                }
                 if ($open < 0) { //More are closed than opened
                     $valid = false;
                 }
@@ -312,6 +326,9 @@ class bibtexparser_plugin_bibtex4dw
                 $buffer .= $char;
             }
             $lastchar = $char;
+            if ($char != ' ' && $char != '\t' && $char != '\n' && $char != '\r') {
+                $lastNonWsChar = $char;
+            }
         }
         if ($sqlite) {
             $this->_issueSQLStatements();
