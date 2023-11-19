@@ -307,9 +307,8 @@ class bibtexrender_plugin_bibtex4dw {
                 // do sth.
                 $pdffilename = mediaFN($this->_conf['pdfdir'][0]) . "/" . $bibtex_key . ".pdf";
                 if (file_exists($pdffilename)) {
-                    resolve_mediaid($this->_conf['pdfdir'][0], $pdflinkname, $exists);
                     $formatstring = $formatstring . '&nbsp;<a href="' . 
-                    ml($pdflinkname) . "/" . $bibtex_key . ".pdf" . '">PDF</a>';
+                    ml($this->_conf['pdfdir'][0] . ":" . $bibtex_key . ".pdf") . '">PDF</a>';
                 }
             }
         }
