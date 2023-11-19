@@ -301,7 +301,7 @@ class bibtexparser_plugin_bibtex4dw
                     $entry = false;
                     // TODO: Some check for duplicate keys and issuing a warning if so?
                     if ($sqlite) {
-                        $this->_createInsertStatementForSQLiteDB($buffer);
+                        $this->_addEntryToSQLiteDB($buffer);
                     } else {
                         $this->_splitBibTeXEntry($buffer);
                     }
@@ -312,9 +312,6 @@ class bibtexparser_plugin_bibtex4dw
                 $buffer .= $char;
             }
             $lastchar = $char;
-        }
-        if ($sqlite) {
-            $this->_issueSQLStatements();
         }
         //If open is one it may be possible that the last ending brace is missing
         // TODO: Handle situation with using SQLite DB
@@ -399,8 +396,7 @@ class bibtexparser_plugin_bibtex4dw
                 if (0 == $open) { //End of entry
                     $entry     = false;
                     if ($sqlite) {
-                        //$this->_addEntryToSQLiteDB($buffer);
-                        $this->_createInsertStatementForSQLiteDB($buffer);
+                        $this->_addEntryToSQLiteDB($buffer);
                     } else {
                         $entrydata = $this->_parseEntry($buffer);
                         if ($entrydata) {
@@ -414,9 +410,6 @@ class bibtexparser_plugin_bibtex4dw
                 $buffer .= $char;
             }
             $lastchar = $char;
-        }
-        if ($sqlite) {
-            $this->_issueSQLStatements();
         }
         //If open is one it may be possible that the last ending brace is missing
         // TODO: Handle situation with using SQLite DB
@@ -487,52 +480,6 @@ class bibtexparser_plugin_bibtex4dw
         }
     }
 
-    /**
-     * Create insert statement for SQLite DB
-     */
-    private function _createInsertStatementForSQLiteDB($entry)
-    {
-        $key = '';
-        if ('@string' ==  strtolower(substr($entry, 0, 7))) {
-            $matches = array();
-            preg_match('/^@\w+\{(.+)/', $entry, $matches);
-            if (count($matches) > 0)
-            {
-                $m = explode('=', $matches[1], 2);
-                $string = trim($m[0]);
-                $entry = substr(trim($m[1]), 1, -1);
-                $statement = "INSERT OR REPLACE INTO strings (string, entry) VALUES ('$string','$entry')";
-                $this->_sqlStatements[] = $statement;
-            }
-        } else {
-            $entry = $entry.'}';
-            // Look for key
-            $matches = array();
-            preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
-            if (count($matches) > 0)
-            {
-                $entryType = $matches[1];
-                $key = $matches[2];
-                $quoted_entry = $this->sqlite->escape_string($entry);
-                $statement = "INSERT OR REPLACE INTO bibtex (key, entry) VALUES ('$key','$quoted_entry')";
-                $this->_sqlStatements[] = $statement;
-            }
-        }
-    }
-
-    /**
-     * Perform a series of statements in one transaction in SQLite DB
-     *
-     * Performing a series of statements in one transaction instead of
-     * performing repeated SQL queries saves a tremendous amount of time.
-     */
-    private function _issueSQLStatements()
-    {
-        array_unshift($this->_sqlStatements, "BEGIN TRANSACTION");
-        $this->_sqlStatements[] = "COMMIT;";
-        $this->sqlite->doTransaction($this->_sqlStatements, $sqlpreparing = false);
-        $this->_sqlStatements = [];
-    }
 
     /**
      * Add entry to SQLite DB
@@ -680,7 +627,7 @@ class bibtexparser_plugin_bibtex4dw
             $arr = explode('{', $entry);
             $ret['cite'] = trim($arr[1]);
             $ret['entrytype'] = strtolower(trim($arr[0]));
-            if ('@' == $ret['entrytype']{0}) {
+            if ('@' == $ret['entrytype'][0]) {
                 $ret['entrytype'] = substr($ret['entrytype'], 1);
             }
             if ($this->_options['validate']) {
@@ -844,9 +791,9 @@ class bibtexparser_plugin_bibtex4dw
         //Then it is possible that the braces are equal even if the '=' is in an equation.
         if ($ret) {
             $entrycopy = trim($entry);
-            $lastchar  = $entrycopy{strlen($entrycopy)-1};
+            $lastchar  = $entrycopy[strlen($entrycopy)-1];
             if (',' == $lastchar) {
-                $lastchar = $entrycopy{strlen($entrycopy)-2};
+                $lastchar = $entrycopy[strlen($entrycopy)-2];
             }
             if ('"' == $lastchar) {
                 //The return value is set to false
