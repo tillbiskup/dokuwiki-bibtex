@@ -6,6 +6,10 @@ For the full history, have a look at the git commit messages.
 
 Note that the changelog started only in May 2023, after the plugin was not developed for several years (but continuously used by its author). Old changes are taken from the (German) plugin homepage of its author.
 
+## 2023-11-19
+
+* Merged PR from SECtim, closing [#3](https://github.com/tillbiskup/dokuwiki-bibtex/issues/3), [#4](https://github.com/tillbiskup/dokuwiki-bibtex/issues/4), [#5](https://github.com/tillbiskup/dokuwiki-bibtex/issues/5)
+
 ## 2023-05-28
 
 * Rename plugin: "bibtex" => "bibtex4dw"
