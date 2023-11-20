@@ -315,9 +315,9 @@ class bibtexparser_plugin_bibtex4dw
                     $entry = false;
                     // TODO: Some check for duplicate keys and issuing a warning if so?
                     if ($sqlite) {
-                        $this->_addEntryToSQLiteDB($buffer);
+                        $this->_prepareSqlStatement($buffer);
                     } else {
-                        $this->_splitBibTeXEntry($buffer);
+                        $this->_storeEntryInClass($buffer);
                     }
                     $buffer = '';
                 }
@@ -341,6 +341,9 @@ class bibtexparser_plugin_bibtex4dw
                 $buffer = '';
                 $open   = 0;
             }
+        }
+        if ($sqlite) {
+            $this->_executeSqlStatements();
         }
         //At this point the open should be zero
         if (0 != $open) {
@@ -470,16 +473,6 @@ class bibtexparser_plugin_bibtex4dw
     }
 
     /**
-     * Split entry in key and actual contents
-     */
-    private function _splitBibTeXEntry($entry)
-    {
-        $stringCallback = fn($key, $value) => $this->_strings[$key] = $value;
-        $bibItemCallback = fn($key, $value) => $this->entries[$key] = $value;
-        $this->_storeBibTeXEntry($entry,  $stringCallback, $bibItemCallback);
-    }
-
-    /**
      * Split entry in key and actual contents, call stringCallback for @string entries and bibItemCallback for all other entries.
      * 
      * @param string $entry BibTeX entry, starting with @ and ending BEFORE the closing brace of the entry
@@ -513,15 +506,65 @@ class bibtexparser_plugin_bibtex4dw
         throw new InvalidArgumentException('Could not parse entry "'.$entry.'"');
     }
 
+    /**
+     * Store given entry in this object's members
+     *
+     * @param string $entry BibTeX entry, starting with @ and ending BEFORE the closing brace of the entry
+     */
+    private function _storeEntryInClass($entry)
+    {
+        $stringCallback = fn($key, $value) => $this->_strings[$key] = $value;
+        $bibItemCallback = fn($key, $value) => $this->entries[$key] = $value;
+        $this->_storeBibTeXEntry($entry,  $stringCallback, $bibItemCallback);
+    }
 
     /**
-     * Add entry to SQLite DB
+     * Add/update entry in SQLite DB (immediately)
      */
     private function _addEntryToSQLiteDB($entry)
     {
         $stringCallback = fn($key, $value) => $this->sqlite->query("INSERT OR REPLACE INTO strings (string, entry) VALUES (?,?)", $key, $value);
         $bibItemCallback = fn($key, $value) => $this->sqlite->query("INSERT OR REPLACE INTO bibtex (key, entry) VALUES (?,?)", $key, $value);
         $this->_storeBibTeXEntry($entry,  $stringCallback, $bibItemCallback);
+    }
+
+    /**
+     * Prepare an SQL statement to insert/update $entry in the DB.
+     */
+    private function _prepareSqlStatement($entry)
+    {
+        $stringCallback = fn($key, $value) => $this->_sqlStatements[] = array("INSERT OR REPLACE INTO strings (string, entry) VALUES (?,?)", array($key, $value));
+        $bibItemCallback = fn($key, $value) => $this->_sqlStatements[] = array("INSERT OR REPLACE INTO bibtex (key, entry) VALUES (?,?)", array($key, $value));
+        $this->_storeBibTeXEntry($entry,  $stringCallback, $bibItemCallback);
+    }
+
+    /**
+     * Execute all statements in $this->_sqlStatments in a single transaction.
+     *
+     * A single transaction is MUCH faster than executing statements sequentially.
+     */
+    private function _executeSqlStatements()
+    {
+        $pdo = $this->sqlite->getAdapter()->getPdo();
+        try {
+            if(!$pdo->beginTransaction()) {
+                msg('Sqlite error when starting transaction.', -1);
+                return;
+            }
+            foreach ($this->_sqlStatements as $statement) {
+                list($sql, $params) = $statement;
+                $pdo_stmt = $pdo->prepare($sql);
+                $pdo_stmt->execute($params);
+            }
+            if(!$pdo->commit()) {
+                msg('Sqlite error during commit.', -1);
+                return;
+            }
+        } catch (PDOException $ex) {
+            $pdo->rollBack();
+            throw $ex; // TODO handle this case, e.g., by falling back to single queries?
+        }
+        $this->_sqlStatements = array();
     }
 
     /**
