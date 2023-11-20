@@ -474,7 +474,20 @@ class bibtexparser_plugin_bibtex4dw
      */
     private function _splitBibTeXEntry($entry)
     {
-        $key = '';
+        $stringCallback = fn($key, $value) => $this->_strings[$key] = $value;
+        $bibItemCallback = fn($key, $value) => $this->entries[$key] = $value;
+        $this->_storeBibTeXEntry($entry,  $stringCallback, $bibItemCallback);
+    }
+
+    /**
+     * Split entry in key and actual contents, call stringCallback for @string entries and bibItemCallback for all other entries.
+     * 
+     * @param string $entry BibTeX entry, starting with @ and ending BEFORE the closing brace of the entry
+     * @param callable $stringCallback Will be called with two arguments (key, value) for @string entries
+     * @param callable $bibItemCallback Will be called with two arguments (key, full entry as string) for all non-@string entries
+     */
+    private function _storeBibTeXEntry($entry, $stringCallback, $bibItemCallback)
+    {
         if ('@string' ==  strtolower(substr($entry, 0, 7))) {
             $matches = array();
             preg_match('/^@\w+\{(.+)/', $entry, $matches);
@@ -482,7 +495,8 @@ class bibtexparser_plugin_bibtex4dw
                 $m = explode('=', $matches[1], 2);
                 $string = trim($m[0]);
                 $entry = substr(trim($m[1]), 1, -1);
-                $this->_strings[$string] = $entry;
+                call_user_func($stringCallback, $string, $entry);
+                return;
             }
         } else {
             $entry = $entry.'}';
@@ -492,39 +506,22 @@ class bibtexparser_plugin_bibtex4dw
             if (count($matches) > 0) {
                 $entryType = $matches[1];
                 $key = $matches[2];
-                $this->entries[$key] = $entry;
+                call_user_func($bibItemCallback, $key, $entry);
+                return;
             }
         }
+        throw new InvalidArgumentException('Could not parse entry "'.$entry.'"');
     }
+
 
     /**
      * Add entry to SQLite DB
      */
     private function _addEntryToSQLiteDB($entry)
     {
-        $key = '';
-        if ('@string' ==  strtolower(substr($entry, 0, 7))) {
-            $matches = array();
-            preg_match('/^@\w+\{(.+)/', $entry, $matches);
-            if (count($matches) > 0)
-            {
-                $m = explode('=', $matches[1], 2);
-                $string = trim($m[0]);
-                $entry = substr(trim($m[1]), 1, -1);
-                $this->sqlite->query("INSERT OR REPLACE INTO strings (string, entry) VALUES (?,?)", $string, $entry);
-            }
-        } else {
-            $entry = $entry.'}';
-            // Look for key
-            $matches = array();
-            preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
-            if (count($matches) > 0)
-            {
-                $entryType = $matches[1];
-                $key = $matches[2];
-                $this->sqlite->query("INSERT OR REPLACE INTO bibtex (key, entry) VALUES (?,?)", $key, $entry);
-            }
-        }
+        $stringCallback = fn($key, $value) => $this->sqlite->query("INSERT OR REPLACE INTO strings (string, entry) VALUES (?,?)", $key, $value);
+        $bibItemCallback = fn($key, $value) => $this->sqlite->query("INSERT OR REPLACE INTO bibtex (key, entry) VALUES (?,?)", $key, $value);
+        $this->_storeBibTeXEntry($entry,  $stringCallback, $bibItemCallback);
     }
 
     /**
