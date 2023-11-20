@@ -6,6 +6,10 @@ For the full history, have a look at the git commit messages.
 
 Note that the changelog started only in May 2023, after the plugin was not developed for several years (but continuously used by its author). Old changes are taken from the (German) plugin homepage of its author.
 
+## Unreleased
+
+* Change syntax of format strings for bibliography, see #6
+
 ## 2023-05-28
 
 * Rename plugin: "bibtex" => "bibtex4dw"
