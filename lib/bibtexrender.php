@@ -302,13 +302,11 @@ class bibtexrender_plugin_bibtex4dw {
         // Check whether we have a directory for PDF files
         if (array_key_exists('pdfdir',$this->_conf)) {
             // Check whether we are logged in and have permissions to access the PDFs
-            if ((auth_quickaclcheck($this->_conf['pdfdir'][0]) >= AUTH_READ) && 
-                array_key_exists('name',$INFO['userinfo'])) {
-                // do sth.
-                $pdffilename = mediaFN($this->_conf['pdfdir'][0]) . "/" . $bibtex_key . ".pdf";
+            if ((auth_quickaclcheck($this->_conf['pdfdir'][0]) >= AUTH_READ) && array_key_exists('name', $INFO['userinfo'])) {
+                $pdf = $this->_conf['pdfdir'][0] . "/" . strtolower($bibtex_key) . ".pdf";
+                $pdffilename = mediaFN($pdf);
                 if (file_exists($pdffilename)) {
-                    $formatstring = $formatstring . '&nbsp;<a href="' . 
-                    ml($this->_conf['pdfdir'][0] . ":" . $bibtex_key . ".pdf") . '">PDF</a>';
+                    $formatstring .= '&nbsp;<a href="' . ml($pdf) . '">PDF</a>';
                 }
             }
         }
