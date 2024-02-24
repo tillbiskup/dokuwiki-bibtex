@@ -278,9 +278,12 @@ class bibtexparser_plugin_bibtex4dw
         $char           = '';
         $lastchar       = '';
         $buffer         = '';
+        $inField        = false;
+        $openInField    = 0;
+        $lastNonWsChar  = '';
         for ($i = 0; $i < strlen($this->content); $i++) {
             $char = substr($this->content, $i, 1);
-            if ((0 != $open) && ('@' == $char)) {
+            if ((0 != $open) && ('@' == $char) && (!$inField)) {
                 if (!$this->_checkAt($buffer)) {
                     $this->_generateWarning('WARNING_MISSING_END_BRACE', '', $buffer);
                     //To correct the data we need to insert a closing brace
@@ -292,8 +295,19 @@ class bibtexparser_plugin_bibtex4dw
                 $entry = true;
             } elseif ($entry && ('{' == $char) && ('\\' != $lastchar)) { //Inside an entry and non quoted brace is opening
                 $open++;
+                if (!$inField && ($lastNonWsChar == '=')) {
+                    $inField = true;
+                } elseif ($inField) {
+                    $openInField++;
+                }
             } elseif ($entry && ('}' == $char) && ('\\' != $lastchar)) { //Inside an entry and non quoted brace is closing
                 $open--;
+                if ($inField) {
+                    $openInField--;
+                    if ($openInField == 0) {
+                        $inField = false;
+                    }
+                }
                 if ($open < 0) { //More are closed than opened
                     $valid = false;
                 }
@@ -312,6 +326,9 @@ class bibtexparser_plugin_bibtex4dw
                 $buffer .= $char;
             }
             $lastchar = $char;
+            if ($char != ' ' && $char != '\t' && $char != '\n' && $char != '\r') {
+                $lastNonWsChar = $char;
+            }
         }
         //If open is one it may be possible that the last ending brace is missing
         // TODO: Handle situation with using SQLite DB
@@ -480,7 +497,6 @@ class bibtexparser_plugin_bibtex4dw
         }
     }
 
-
     /**
      * Add entry to SQLite DB
      */
@@ -598,7 +614,9 @@ class bibtexparser_plugin_bibtex4dw
                 if (!in_array(substr($value,0,1),array_keys($this->_delimiters))) {
                       if (!empty($this->sqlite)) {
                         $stringReplacement = $this->sqlite->res2arr($this->sqlite->query("SELECT entry FROM strings WHERE string = ?",$value));
-                        $value = $stringReplacement[0]['entry'];
+                        if (!empty($stringReplacement)) {
+                            $value = $stringReplacement[0]['entry'];
+                        }
                     } elseif (array_key_exists($value,$this->_strings)) {
                         $value = $this->_strings[$value];
                     }
@@ -640,6 +658,13 @@ class bibtexparser_plugin_bibtex4dw
                 // Array with all the authors in $ret['authors']
                 $ret['authors'] = $this->_extractAuthors($ret['author']);
                 // AuthorYear for sorting purposes in $ref['authoryear']
+                if (empty($ret['year'])) {
+                    if (!empty($ret['date']) && preg_match('|(\d\d\d\d).*|U', $ret['date'], $matches)) {
+                        $ret['year'] = $matches[1];
+                    } else {
+                        $ret['year'] = '[n.d.]';
+                    }
+                }
                 $ret['authoryear'] = $ret['authors'][0]['last'] . $ret['year'];
                 // Nicely formatted authors list in $ret['author']
                 $tmparray = array();
@@ -689,7 +714,8 @@ class bibtexparser_plugin_bibtex4dw
         // \url{...} -> ...
         $entry = preg_replace("/\\\url\{([^\}]+)\}/",'<a href="\\1">\\1</a>',$entry);
         // Handle umlauts
-        $entry = preg_replace('/\\\"([aeiouyAEIOU]?)/',"&\\1uml;",$entry);
+        $entry = preg_replace('/\\\"\{([aeiouyAEIOU])\}/',"&\\1uml;",$entry);
+        $entry = preg_replace('/\\\"([aeiouyAEIOU])/',"&\\1uml;",$entry);
         $entry = str_replace("\ss","&szlig;",$entry);
         $entry = str_replace('"s',"&szlig;",$entry);
         // Handle accents
@@ -977,8 +1003,8 @@ class bibtexparser_plugin_bibtex4dw
                                 $islast = true;
                                 for ($k=($j+1); $k<($size-1); $k++) {
                                     $futurecase = $this->_determineCase($tmparray[$k]);
-                                    if (PEAR::isError($case)) {
-                                        // IGNORE?
+                                    if ($case == PHP_INT_MAX) {
+                                        // Error case. IGNORE?
                                     } elseif (0 == $futurecase) {
                                         $islast = false;
                                     }
@@ -1069,7 +1095,7 @@ class bibtexparser_plugin_bibtex4dw
      *
      * @access private
      * @param string $word
-     * @return int The Case or PEAR_Error if there was a problem
+     * @return int The Case or PHP_INT_MAX if there was a problem
      */
     private function _determineCase($word) {
         $ret         = -1;
@@ -1100,6 +1126,7 @@ class bibtexparser_plugin_bibtex4dw
                 }
             }
         } else {
+            $ret = PHP_INT_MAX;
 //            $ret = PEAR::raiseError('Could not determine case on word: '.(string)$word);
         }
         return $ret;
@@ -1157,8 +1184,8 @@ class bibtexparser_plugin_bibtex4dw
     {
         //First we save the delimiters
         $beginningdels = array_keys($this->_delimiters);
-        $firstchar     = substr($entry, 0, 1);
-        $lastchar      = substr($entry, -1, 1);
+        $firstchar     = substr($value, 0, 1);
+        $lastchar      = substr($value, -1, 1);
         $begin         = '';
         $end           = '';
         while (in_array($firstchar, $beginningdels)) { //The first character is an opening delimiter
