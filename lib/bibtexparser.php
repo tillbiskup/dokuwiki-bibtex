@@ -315,9 +315,9 @@ class bibtexparser_plugin_bibtex4dw
                     $entry = false;
                     // TODO: Some check for duplicate keys and issuing a warning if so?
                     if ($sqlite) {
-                        $this->_addEntryToSQLiteDB($buffer);
+                        $this->_prepareSqlStatement($buffer);
                     } else {
-                        $this->_splitBibTeXEntry($buffer);
+                        $this->_storeEntryInClass($buffer);
                     }
                     $buffer = '';
                 }
@@ -341,6 +341,9 @@ class bibtexparser_plugin_bibtex4dw
                 $buffer = '';
                 $open   = 0;
             }
+        }
+        if ($sqlite) {
+            $this->_executeSqlStatements();
         }
         //At this point the open should be zero
         if (0 != $open) {
@@ -470,11 +473,14 @@ class bibtexparser_plugin_bibtex4dw
     }
 
     /**
-     * Split entry in key and actual contents
+     * Split entry in key and actual contents, call stringCallback for @string entries and bibItemCallback for all other entries.
+     * 
+     * @param string $entry BibTeX entry, starting with @ and ending BEFORE the closing brace of the entry
+     * @param callable $stringCallback Will be called with two arguments (key, value) for @string entries
+     * @param callable $bibItemCallback Will be called with two arguments (key, full entry as string) for all non-@string entries
      */
-    private function _splitBibTeXEntry($entry)
+    private function _storeBibTeXEntry($entry, $stringCallback, $bibItemCallback)
     {
-        $key = '';
         if ('@string' ==  strtolower(substr($entry, 0, 7))) {
             $matches = array();
             preg_match('/^@\w+\{(.+)/', $entry, $matches);
@@ -482,7 +488,8 @@ class bibtexparser_plugin_bibtex4dw
                 $m = explode('=', $matches[1], 2);
                 $string = trim($m[0]);
                 $entry = substr(trim($m[1]), 1, -1);
-                $this->_strings[$string] = $entry;
+                call_user_func($stringCallback, $string, $entry);
+                return;
             }
         } else {
             $entry = $entry.'}';
@@ -492,39 +499,72 @@ class bibtexparser_plugin_bibtex4dw
             if (count($matches) > 0) {
                 $entryType = $matches[1];
                 $key = $matches[2];
-                $this->entries[$key] = $entry;
+                call_user_func($bibItemCallback, $key, $entry);
+                return;
             }
         }
+        throw new InvalidArgumentException('Could not parse entry "'.$entry.'"');
     }
 
     /**
-     * Add entry to SQLite DB
+     * Store given entry in this object's members
+     *
+     * @param string $entry BibTeX entry, starting with @ and ending BEFORE the closing brace of the entry
+     */
+    private function _storeEntryInClass($entry)
+    {
+        $stringCallback = fn($key, $value) => $this->_strings[$key] = $value;
+        $bibItemCallback = fn($key, $value) => $this->entries[$key] = $value;
+        $this->_storeBibTeXEntry($entry,  $stringCallback, $bibItemCallback);
+    }
+
+    /**
+     * Add/update entry in SQLite DB (immediately)
      */
     private function _addEntryToSQLiteDB($entry)
     {
-        $key = '';
-        if ('@string' ==  strtolower(substr($entry, 0, 7))) {
-            $matches = array();
-            preg_match('/^@\w+\{(.+)/', $entry, $matches);
-            if (count($matches) > 0)
-            {
-                $m = explode('=', $matches[1], 2);
-                $string = trim($m[0]);
-                $entry = substr(trim($m[1]), 1, -1);
-                $this->sqlite->query("INSERT OR REPLACE INTO strings (string, entry) VALUES (?,?)", $string, $entry);
+        $stringCallback = fn($key, $value) => $this->sqlite->query("INSERT OR REPLACE INTO strings (string, entry) VALUES (?,?)", $key, $value);
+        $bibItemCallback = fn($key, $value) => $this->sqlite->query("INSERT OR REPLACE INTO bibtex (key, entry) VALUES (?,?)", $key, $value);
+        $this->_storeBibTeXEntry($entry,  $stringCallback, $bibItemCallback);
+    }
+
+    /**
+     * Prepare an SQL statement to insert/update $entry in the DB.
+     */
+    private function _prepareSqlStatement($entry)
+    {
+        $stringCallback = fn($key, $value) => $this->_sqlStatements[] = array("INSERT OR REPLACE INTO strings (string, entry) VALUES (?,?)", array($key, $value));
+        $bibItemCallback = fn($key, $value) => $this->_sqlStatements[] = array("INSERT OR REPLACE INTO bibtex (key, entry) VALUES (?,?)", array($key, $value));
+        $this->_storeBibTeXEntry($entry,  $stringCallback, $bibItemCallback);
+    }
+
+    /**
+     * Execute all statements in $this->_sqlStatments in a single transaction.
+     *
+     * A single transaction is MUCH faster than executing statements sequentially.
+     */
+    private function _executeSqlStatements()
+    {
+        $pdo = $this->sqlite->getAdapter()->getPdo();
+        try {
+            if(!$pdo->beginTransaction()) {
+                msg('Sqlite error when starting transaction.', -1);
+                return;
             }
-        } else {
-            $entry = $entry.'}';
-            // Look for key
-            $matches = array();
-            preg_match('/^@(\w+)\{(.+),/', $entry, $matches);
-            if (count($matches) > 0)
-            {
-                $entryType = $matches[1];
-                $key = $matches[2];
-                $this->sqlite->query("INSERT OR REPLACE INTO bibtex (key, entry) VALUES (?,?)", $key, $entry);
+            foreach ($this->_sqlStatements as $statement) {
+                list($sql, $params) = $statement;
+                $pdo_stmt = $pdo->prepare($sql);
+                $pdo_stmt->execute($params);
             }
+            if(!$pdo->commit()) {
+                msg('Sqlite error during commit.', -1);
+                return;
+            }
+        } catch (PDOException $ex) {
+            $pdo->rollBack();
+            throw $ex; // TODO handle this case, e.g., by falling back to single queries?
         }
+        $this->_sqlStatements = array();
     }
 
     /**
