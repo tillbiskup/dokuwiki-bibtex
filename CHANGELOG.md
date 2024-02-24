@@ -6,9 +6,10 @@ For the full history, have a look at the git commit messages.
 
 Note that the changelog started only in May 2023, after the plugin was not developed for several years (but continuously used by its author). Old changes are taken from the (German) plugin homepage of its author.
 
-## Unreleased
+## 2024-02-24
 
-* Change syntax of format strings for bibliography, see #6
+* Change syntax of format strings for bibliography, see [#6](https://github.com/tillbiskup/dokuwiki-bibtex/pull/6)
+* Perform SQLite updates in a single transaction, see [#8](https://github.com/tillbiskup/dokuwiki-bibtex/pull/8)
 
 ## 2023-11-19
 
